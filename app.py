@@ -53,9 +53,7 @@ with col1:
     odd_fav = st.number_input(f"Odd {nome_fav}", min_value=1.01, value=1.50)
     stake_fav = st.number_input(f"Stake no {nome_fav} ($)", min_value=1.0, value=60.0)
     
-    # Inputs de Cobertura (embaixo do stake)
-    st.markdown("---")
-    st.markdown("#### ⚠️ Cobertura (Opcional)")
+    # Inputs de Cobertura
     nome_empate = st.text_input("Empate (Odd)", "Empate")
     odd_empate = st.number_input(f"Odd Empate", min_value=1.01, value=4.00)
     
@@ -70,8 +68,17 @@ with col1:
         stake_empate = lucro_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         stake_zebra = lucro_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
     else:
+        # Break Even: Cálculo iterativo para coverir o investimento total (Fav + Emp + Zeb + Seg)
+        # Iteração 1: Estimar com stake_empate e stake_zebra = 0
         stake_empate = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         stake_zebra = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        
+        # Iteração 2: Refinar usando o valor do seguro
+        total_sem_empate = stake_fav + stake_zebra + valor_seguro
+        stake_empate = total_sem_empate / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
+        
+        total_sem_zebra = stake_fav + stake_empate + valor_seguro
+        stake_zebra = total_sem_zebra / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
 
     st.markdown(f"""
     <div class="card" style="border-color: #FF3B30; margin-top: 10px;">
@@ -83,8 +90,6 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    # Área de Análises e Resultados (antes estava vazia ou bagunçada)
-    
     # Análise de Mercado
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
@@ -117,9 +122,9 @@ with col2:
 
 # --- CENÁRIOS ---
 st.markdown("---")
-st.header("🔎 3 Cenários")
+st.header("🔎 4 Cenários")
 
-c1, c2, c3 = st.columns(3)
+c1, c2, c3, c4 = st.columns(4)
 
 # 1. Fav Ganha
 lucro_1 = (stake_fav * odd_fav) - total_apostado - valor_seguro
@@ -160,6 +165,23 @@ with c3:
         <h3>🏅 {nome_zebra}</h3>
         <div class="metric-value {cor_3}">${lucro_3:,.2f}</div>
         <div class="roi-text">ROI: {roi_3:.1f}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# 4. Muitos Gols (Over 1.5) - Seguro Ganha
+# O seguro paga (valor_seguro * odd_over) mas não paga o favorito
+lucro_seguro = (valor_seguro * odd_over) - valor_seguro  # Lucro puro do seguro
+lucro_4 = lucro_seguro - (stake_empate + stake_zebra)  # Ganha seguro, perde coberturas
+roi_4 = (lucro_4 / total_apostado) * 100 if total_apostado > 0 else 0
+cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
+
+with c4:
+    st.markdown(f"""
+    <div class="card">
+        <h3>⚽ Over 1.5</h3>
+        <div class="metric-label">Seguro Ganha</div>
+        <div class="metric-value {cor_4}">${lucro_4:,.2f}</div>
+        <div class="roi-text">ROI: {roi_4:.1f}%</div>
     </div>
     """, unsafe_allow_html=True)
 
