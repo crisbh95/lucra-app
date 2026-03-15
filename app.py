@@ -102,7 +102,7 @@ with col_inputs:
         total_cents = cents_fav + cents_empate + cents_zebra
         
         if total_cents > 100:
-            st.error(f"⚠️ Erro: A soma dos centavos ({total_cents}) não pode ultrapassar 100.")
+            st.warning(f"⚠️ Aviso: A soma dos centavos é {total_cents} (o mercado tem ~3% de taxa/spread). Os cálculos continuarão.")
         
         # Sugestao automatica baseada no que sobra
         if is_poly_fav and not is_poly_empate and not is_poly_zebra:
@@ -115,12 +115,16 @@ with col_inputs:
                 st.success(f"💡 Sugestão: Para um mercado justo, a Zebra deveria estar em ~{suggested_zebra}¢.")
     
     st.markdown("### 🛡️ Seguro Gols")
-    lucro_bruto = (stake_fav * odd_fav) - stake_fav
-    if lucro_bruto < 0: lucro_bruto = 0
+    modo_seguro = st.radio("Modo Seguro:", ["Odd Decimal (Brasil)", "Centavos (Polymarket)"], horizontal=True, key="modo_seguro")
     
-    pct_seguro = st.slider("% Lucro Seguro", 0, 100, 10)
-    valor_seguro = lucro_bruto * (pct_seguro / 100)
-    odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
+    if modo_seguro == "Centavos (Polymarket)":
+        cents_seguro = st.number_input("Preço Over 1.5 (¢)", min_value=1, max_value=99, value=70, key="cents_seguro")
+        odd_over = 100 / cents_seguro
+        st.info(f"Equivalent Odd: {odd_over:.2f}")
+    else:
+        odd_over = st.number_input("Odd Over 1.5", min_value=1.01, value=1.30, format="%.2f", key="odd_over")
+    
+    valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.0, key="valor_seguro")
 
 with col_estrategia:
     st.markdown("### 🎯 Estratégia")
@@ -271,8 +275,8 @@ Para cobrir Empate e Zebra:
 
 **4. Seguro de Gols**
 Procure o mercado: `Total Goals Over 1.5`
-* Escolha: **Casa**
-* Digite: **${valor_seguro:,.2f}**
+* Escolha: **{"Polymarket (YES)" if modo_seguro == "Centavos (Polymarket)" else "Casa"}**
+* Digite: **{f"{int(100/odd_over)}¢ (Amount: ${valor_seguro:,.2f})" if modo_seguro == "Centavos (Polymarket)" else f"${valor_seguro:,.2f}"}**
 """)
 
 st.sidebar.info("💡 Dica: O 'NÃO' no favorito substitui as apostas individuais em Empate e Zebra.")
