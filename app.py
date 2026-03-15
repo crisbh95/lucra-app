@@ -396,41 +396,49 @@ st.header("🔎 4 Cenários")
 
 # Funcao para exibir os 4 cenarios
 def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, odd_emp, odd_zeb, odd_seg):
-    # 1. Calcula o Investimento Total Real
-    total_investido = stake_fav + stake_emp + stake_zeb + stake_seg
+    # Cálculo do investimento total
+    total = stake_fav + stake_emp + stake_zeb + stake_seg
     
-    # 2. Calcula o retorno bruto de cada cenario
-    retorno_fav = stake_fav * odd_fav
-    retorno_emp = stake_emp * odd_emp
-    retorno_zeb = stake_zeb * odd_zeb
-    retorno_seg = stake_seg * odd_seg
-    
-    # 3. Calcula o LUCRO REAL (Retorno - Tudo que gastou)
-    lucro_fav = retorno_fav - total_investido
-    lucro_emp = retorno_emp - total_investido
-    lucro_zeb = retorno_zeb - total_investido
-    lucro_seg = retorno_seg - total_investido
+    # Cálculo do lucro real de cada cenário
+    l_fav = (stake_fav * odd_fav) - total
+    l_emp = (stake_emp * odd_emp) - total
+    l_zeb = (stake_zeb * odd_zeb) - total
+    l_seg = (stake_seg * odd_seg) - total
 
-    # 4. Criar os cards na tela (Streamlit)
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("🏆 " + nome_fav, f"$ {lucro_fav:.2f}", delta=f"{((lucro_fav/total_investido)*100):.1f}%")
-        
-    with col2:
-        # Se a fórmula de Break Even estiver certa, aqui deve aparecer $ 0.00
-        st.metric("⚖️ " + nome_empate, f"$ {lucro_emp:.2f}", delta=f"{((lucro_emp/total_investido)*100):.1f}%")
-        
-    with col3:
-        st.metric("🏅 " + nome_zebra, f"$ {lucro_zeb:.2f}", delta=f"{((lucro_zeb/total_investido)*100):.1f}%")
-        
-    with col4:
-        # Aqui o erro do $-165 vai sumir
-        st.metric("⚽ Over 1.5", f"$ {lucro_seg:.2f}", delta=f"{((lucro_seg/total_investido)*100):.1f}%")
+    # Estilo CSS para as bordas e cores
+    st.markdown("""
+        <style>
+        .card {
+            border: 2px solid #4B5563;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            background-color: #1F2937;
+            margin-bottom: 10px;
+        }
+        .verde { color: #10B981; }
+        .vermelho { color: #EF4444; }
+        </style>
+    """, unsafe_allow_html=True)
 
-    st.write(f"**Total Investido na Operação: $ {total_investido:.2f}**")
+    cols = st.columns(4)
+    titulos = [f"🏆 {nome_fav}", f"⚖️ {nome_empate}", f"🏅 {nome_zebra}", "⚽ Over 1.5"]
+    lucros = [l_fav, l_emp, l_zeb, l_seg]
+
+    for i, col in enumerate(cols):
+        cor = "verde" if lucros[i] >= -0.01 else "vermelho"
+        with col:
+            st.markdown(f"""
+                <div class="card">
+                    <p style="margin:0; font-weight:bold;">{titulos[i]}</p>
+                    <h2 class="{cor}" style="margin:10px 0;">$ {lucros[i]:.2f}</h2>
+                    <p style="margin:0; font-size: 0.8em;">ROI: {((lucros[i]/total)*100):.1f}%</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+    st.info(f"💰 Investimento Total na Operação: $ {total:.2f}")
     
-    return lucro_fav, lucro_emp, lucro_zeb, lucro_seg, total_investido
+    return l_fav, l_emp, l_zeb, l_seg, total
 
 # Chama a funcao
 lucro_1, lucro_2, lucro_3, lucro_4, custo_total = exibir_quatro_cenarios(
