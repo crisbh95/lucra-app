@@ -58,6 +58,14 @@ with col_config:
     odd_fav = st.number_input(f"Odd {nome_fav}", min_value=1.01, value=1.50)
     stake_fav = st.number_input(f"Stake no {nome_fav} ($)", min_value=1.0, value=60.0)
     
+    # Seguro Gols (definido antes para uso no Break Even)
+    lucro_bruto = (stake_fav * odd_fav) - stake_fav
+    if lucro_bruto < 0: lucro_bruto = 0
+    
+    pct_seguro = st.slider("% Lucro Seguro", 0, 100, 10)
+    valor_seguro = lucro_bruto * (pct_seguro / 100)
+    odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
+    
     # Inputs de Cobertura
     nome_empate = st.text_input("Empate (Odd)", "Empate")
     odd_empate = st.number_input(f"Odd Empate", min_value=1.01, value=4.00)
@@ -95,14 +103,6 @@ with col_config:
 
 with col_seguro:
     st.markdown("### 🛡️ Seguro Gols")
-    
-    # Seguro Gols (definido antes para uso no Break Even)
-    lucro_bruto = (stake_fav * odd_fav) - stake_fav
-    if lucro_bruto < 0: lucro_bruto = 0
-    
-    pct_seguro = st.slider("% Lucro Seguro", 0, 100, 10)
-    valor_seguro = lucro_bruto * (pct_seguro / 100)
-    odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
     
     st.metric("Valor Seguro", f"${valor_seguro:,.2f}", f"Ret: ${valor_seguro * odd_over:,.2f}")
     
