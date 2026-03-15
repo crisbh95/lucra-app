@@ -206,16 +206,22 @@ with col_inputs:
                 st.success(f"💡 Sugestão: Para um mercado justo, a Zebra deveria estar em ~{suggested_zebra}¢.")
     
     st.markdown("### 🛡️ Seguro Gols")
-    modo_seguro = st.radio("Modo Seguro:", ["Modo Casa Brasileira", "Centavos (Polymarket)"], horizontal=True, key="modo_seguro")
+    ativar_seguro = st.checkbox("Ativar Seguro de Gols", value=True)
     
-    if modo_seguro == "Centavos (Polymarket)":
-        cents_seguro = st.number_input("Preço Over 1.5 (¢)", min_value=1, max_value=99, value=70, key="cents_seguro")
-        odd_over = 100 / cents_seguro
-        st.info(f"Equivalent Odd: {odd_over:.2f}")
+    if ativar_seguro:
+        modo_seguro = st.radio("Modo Seguro:", ["Modo Casa Brasileira", "Centavos (Polymarket)"], horizontal=True, key="modo_seguro")
+        
+        if modo_seguro == "Centavos (Polymarket)":
+            cents_seguro = st.number_input("Preço Over 1.5 (¢)", min_value=1, max_value=99, value=70, key="cents_seguro")
+            odd_over = 100 / cents_seguro
+            st.info(f"Equivalent Odd: {odd_over:.2f}")
+        else:
+            odd_over = st.number_input("Odd Over 1.5", min_value=1.01, value=1.30, format="%.2f", key="odd_over")
+        
+        valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.00, step=1.0, format="%.2f", key="valor_seguro")
     else:
-        odd_over = st.number_input("Odd Over 1.5", min_value=1.01, value=1.30, format="%.2f", key="odd_over")
-    
-    valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.00, step=1.0, format="%.2f", key="valor_seguro")
+        odd_over = 1.01  # Apenas para evitar divisão por zero, valor inativo
+        valor_seguro = 0.0
     
     # Estrategia padrao para calculos temporarios
     estrategia_calc = "💸 Lucro Máximo (Green Up)"
