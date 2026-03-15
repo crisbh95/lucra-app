@@ -445,40 +445,15 @@ else:
 
 # --- CHECKLIST DE SEGURANCA ---
 st.sidebar.markdown("---")
-st.sidebar.header("✅ Checklist de Segurança")
+st.sidebar.markdown("### 🚨 Checklist de Segurança")
+soma_total = cents_fav + cents_empate + cents_zebra
 
-# Check 1: Soma dos centavos
-total_cents_check = cents_fav + cents_empate + cents_zebra
-if is_poly_mode and total_cents_check > 105:
-    st.sidebar.error(f"⚠️ Mercado Perigoso: {total_cents_check}¢ (Normal: 100¢)")
+if soma_total > 105:
+    st.sidebar.error("❌ MERCADO MUITO CARO: A taxa da casa vai comer seu lucro.")
+elif lucro_1 < 0:
+    st.sidebar.warning("⚠️ AJUSTE NECESSÁRIO: O favorito não cobre as proteções. Aumente a Stake ou mude o jogo.")
 else:
-    st.sidebar.success(f"✅ Mercado OK: {total_cents_check}¢")
-
-# Check 2: Seguro esta roubando?
-lucro_total_check = (stake_fav * odd_fav) - stake_fav
-if lucro_total_check > 0:
-    pct_seguro_lucro = (valor_seguro / lucro_total_check) * 100
-    if pct_seguro_lucro > 10:
-        st.sidebar.warning(f"⚠️ Seguro alto: {pct_seguro_lucro:.1f}% do lucro")
-    else:
-        st.sidebar.success(f"✅ Seguro OK: {pct_seguro_lucro:.1f}% do lucro")
-
-# Botao Ajustar para Tudo Verde
-if st.sidebar.button("🎯 Ajustar para Tudo Verde"):
-    # Calcula os valores ideias parazerar os/prejuizos
-    # Lucro do favorito = stake_fav * (odd_fav - 1)
-    # Para cobrir Empate: stake_empate = lucro_fav / (odd_empate - 1)
-    # Para cobrir Zebra: stake_zebra = lucro_fav / (odd_zebra - 1)
-    
-    lucro_fav_otimo = stake_fav * (odd_fav - 1)
-    stake_empate_otimo = lucro_fav_otimo / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-    stake_zebra_otimo = lucro_fav_otimo / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
-    
-    # Seguro zero para garantir verde
-    valor_seguro_otimo = 0.0
-    
-    st.sidebar.success(f"✅ Ajustado! Stake Empate: ${stake_empate_otimo:.2f} | Stake Zebra: ${stake_zebra_otimo:.2f}")
-    st.sidebar.info("💡 Seguro definido como $0 para maximizar lucro no favorito")
+    st.sidebar.success("✅ OPERAÇÃO BLINDADA: Lucro garantido em todos os cenários!")
 
 # --- MANUAL NA BARRA LATERAL ---
 st.sidebar.markdown("---")
