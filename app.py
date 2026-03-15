@@ -405,7 +405,7 @@ st.markdown("---")
 st.header("🔎 4 Cenários")
 
 # Funcao para exibir os 4 cenarios
-def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, odd_emp, odd_zeb, odd_seg):
+def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, odd_emp, odd_zeb, odd_seg, ativar_seguro=True):
     # Cálculo do investimento total
     total = stake_fav + stake_emp + stake_zeb + stake_seg
     
@@ -429,6 +429,7 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
         .verde { color: #10B981; }
         .laranja { color: #F97316; }
         .vermelho { color: #EF4444; }
+        .cinza { color: #9CA3AF; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -440,18 +441,26 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
     
     for i, col in enumerate(cols):
         cor = "verde" if lucros[i] >= -0.01 else "vermelho"
+        valor_str = f"$ {lucros[i]:.2f}"
+        roi_str = f"ROI: {((lucros[i]/total)*100):.1f}%"
         
         # Apenas para o favorito
         if i == 0 and lucros[i] < -0.01:
             cor = "laranja"
             aviso_laranja = True
             
+        # Para o Over 1.5 se o seguro estiver desativado
+        if i == 3 and not ativar_seguro:
+            cor = "cinza"
+            valor_str = "DESATIVADO"
+            roi_str = ""
+            
         with col:
             st.markdown(f"""
                 <div class="card">
                     <p style="margin:0; font-weight:bold;">{titulos[i]}</p>
-                    <h2 class="{cor}" style="margin:10px 0;">$ {lucros[i]:.2f}</h2>
-                    <p style="margin:0; font-size: 0.8em;">ROI: {((lucros[i]/total)*100):.1f}%</p>
+                    <h2 class="{cor}" style="margin:10px 0;">{valor_str}</h2>
+                    <p style="margin:0; font-size: 0.8em;">{roi_str}</p>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -464,7 +473,7 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
 # Chama a funcao
 lucro_1, lucro_2, lucro_3, lucro_4, custo_total = exibir_quatro_cenarios(
     stake_fav, stake_empate, stake_zebra, valor_seguro, 
-    odd_fav, odd_empate, odd_zebra, odd_over
+    odd_fav, odd_empate, odd_zebra, odd_over, ativar_seguro
 )
 
 # --- VERIFICACAO DE VIABILIDADE ---
