@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
-import requests
+
+AUDIO_BEEP_B64 = "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"
+AUDIO_CASH_B64 = "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Z0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPDAADdPGPaY9rdPAAAI8OdJZ0lI8MAAN08Y9pj2t08AAAjw50lnSUjwwAA3Txj2mPa3TwAACPDnSWdJSPD"
 
 def buscar_mercado_polymarket(query):
     try:
@@ -611,6 +613,13 @@ elif lucro_1 < 0:
 else:
     st.sidebar.success("✅ OPERAÇÃO BLINDADA: Lucro garantido em todos os cenários!")
 
+# --- MENU DE AUDIO ---
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔊 Alertas do Scanner")
+ativar_som = st.sidebar.checkbox("🔔 Ativar Alerta Sonoro", value=True)
+if st.sidebar.button("🔊 Testar Som"):
+    st.markdown(f'<audio autoplay><source src="data:audio/wav;base64,{AUDIO_CASH_B64}" type="audio/wav"></audio>', unsafe_allow_html=True)
+
 with tab2:
     st.header("🔍 Scanner Polymarket (Soccer 1x2)")
     st.markdown("Este robô vasculha a API live do Polymarket procurando por ineficiências matemáticas onde **Soma das Odds < 100¢**.")
@@ -623,6 +632,7 @@ with tab2:
                 if res.status_code == 200:
                     events = res.json()
                     encontrados = 0
+                    menor_margem_encontrada = 999.0
                     
                     for ev in events:
                         title = ev.get('title', '')
@@ -657,6 +667,9 @@ with tab2:
                             # Logica para exibir APENAS com borda < 100
                             if soma < 100:
                                 encontrados += 1
+                                if soma < menor_margem_encontrada:
+                                    menor_margem_encontrada = soma
+                                
                                 st.markdown(f"""
                                 <div class="scanner-card">
                                     <div class="scanner-title">🏆 {title}</div>
@@ -700,6 +713,11 @@ with tab2:
                         st.info("Nenhuma oportunidade com liquidez encontrada neste exato momento. O mercado se ajustou. Tente daqui a pouco!")
                     else:
                         st.success(f"Busca finalizada! {encontrados} oportunidades localizadas.")
+                        if ativar_som:
+                            if menor_margem_encontrada < 98.0:
+                                st.markdown(f'<audio autoplay><source src="data:audio/wav;base64,{AUDIO_CASH_B64}" type="audio/wav"></audio>', unsafe_allow_html=True)
+                            elif menor_margem_encontrada < 99.0:
+                                st.markdown(f'<audio autoplay><source src="data:audio/wav;base64,{AUDIO_BEEP_B64}" type="audio/wav"></audio>', unsafe_allow_html=True)
                         
                 else:
                     st.error("Erro ao conectar com a API do Polymarket.")
