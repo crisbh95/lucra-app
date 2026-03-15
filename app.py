@@ -3,11 +3,11 @@ import requests
 
 def buscar_mercado_polymarket(query):
     try:
+        # Tenta buscar na API oficial
         url = "https://clob.polymarket.com/markets"
         params = {
             "active": "true",
-            "limit": "10",
-            "q": query
+            "limit": "20"
         }
         response = requests.get(url, params=params, timeout=10)
         
@@ -17,16 +17,20 @@ def buscar_mercado_polymarket(query):
             
             if "data" in data:
                 for market in data["data"]:
-                    if query.lower() in market.get("question", "").lower():
+                    question = market.get("question", "").lower()
+                    query_lower = query.lower()
+                    
+                    # Procura por times similares no nome
+                    if query_lower in question or any(word in question for word in query_lower.split()):
                         markets.append({
                             "question": market.get("question"),
                             "id": market.get("id"),
-                            "slug": market.get("slug")
+                            "slug": market.get("slug"),
+                            "closed": market.get("closed", False)
                         })
-            return markets
+            return markets[:5]  # Retorna no maximo 5 resultados
         return []
     except Exception as e:
-        st.error(f"Erro ao buscar mercado: {e}")
         return []
 
 def get_preco_central(price_data):
@@ -220,19 +224,23 @@ with col_estrategia:
     
     # Campo de busca na API
     st.markdown("#### 🔍 Buscar Jogo no Polymarket")
-    busca_api = st.text_input("Digite o nome do jogo para buscar:", placeholder="Ex: Flamengo Criciuma")
-    
-    if st.button("🔎 Buscar Preços"):
-        if busca_api:
-            with st.spinner("Buscando mercados..."):
-                markets = buscar_mercado_polymarket(busca_api)
-                if markets:
-                    st.success(f"Encontrados {len(markets)} mercados:")
-                    for m in markets[:3]:
-                        st.markdown(f"- **{m['question']}**")
-                        #Aqui você pode adicionar lógica para preencher os campos automaticamente
-                else:
-                    st.warning("Nenhum mercado encontrado.")
+    col_busca1, col_busca2 = st.columns([3, 1])
+    with col_busca1:
+        busca_api = st.text_input("Digite o nome do jogo para buscar:", placeholder="Ex: Flamengo Criciuma", key="busca_api")
+    with col_busca2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔎 Buscar"):
+            if busca_api:
+                with st.spinner("Buscando mercados..."):
+                    markets = buscar_mercado_polymarket(busca_api)
+                    if markets:
+                        st.success(f"Encontrados {len(markets)} mercados:")
+                        for m in markets:
+                            status = "❌ Encerrado" if m.get("closed") else "✅ Ativo"
+                            link = f"https://polymarket.com/market/{m['slug']}" if m.get("slug") else polymarket_url
+                            st.markdown(f"- [{status}] [{m['question']}]({link})")
+                    else:
+                        st.warning("Nenhum mercado ativo encontrado. Use o link abaixo para buscar manualmente.")
     
     st.markdown("---")
     
