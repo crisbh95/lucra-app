@@ -1,5 +1,32 @@
 import streamlit as st
 
+def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
+    modo = st.radio(
+        f"Modo {label}:",
+        ["Odd Decimal (Brasil)", "Centavos (Polymarket)"],
+        horizontal=True,
+        key=f"modo_{key_prefix}"
+    )
+    
+    if modo == "Centavos (Polymarket)":
+        cents = st.number_input(
+            f"Preço em Centavos ¢ ({label})",
+            min_value=1, max_value=99, value=43,
+            key=f"cents_{key_prefix}"
+        )
+        odd = 100 / cents
+        st.info(f"Equivalent Odd: {odd:.2f}")
+        is_polymarket = True
+    else:
+        odd = st.number_input(
+            f"Odd {label}",
+            min_value=1.01, value=default_odd, format="%.2f",
+            key=f"odd_{key_prefix}"
+        )
+        is_polymarket = False
+    
+    return odd, is_polymarket
+
 st.set_page_config(page_title="Lucra+ | Estratégia Completa", page_icon="🎯", layout="wide")
 
 # --- CSS Custom ---
@@ -40,6 +67,8 @@ st.markdown("""
 
 st.title("🎯 Lucra+ | Estratégia Completa (3 Caminhos)")
 
+st.info("💡 **Dica Polymarket:** No campo Amount do Polymarket, você digita o valor em Dólares (Stake). O site calcula sozinho quantas 'Shares' você compra.")
+
 # --- BARRA LATERAL ---
 st.sidebar.header("💰 Gestão de Banca")
 banca_total = st.sidebar.number_input("Banca Total ($)", min_value=0.0, value=100.0, step=10.0)
@@ -55,14 +84,14 @@ col_inputs, col_estrategia = st.columns([1, 1])
 with col_inputs:
     st.markdown("### 📝 Inputs")
     nome_fav = st.text_input("Favorito", "Flamengo")
-    odd_fav = st.number_input(f"Odd {nome_fav}", min_value=1.01, value=1.50)
+    odd_fav, is_poly_fav = input_odd_or_cents(nome_fav, default_odd=1.50, key_prefix="fav")
     stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=60.0)
     
     nome_empate = st.text_input("Empate", "Empate")
-    odd_empate = st.number_input(f"Odd {nome_empate}", min_value=1.01, value=4.00)
+    odd_empate, is_poly_empate = input_odd_or_cents(nome_empate, default_odd=4.00, key_prefix="emp")
     
     nome_zebra = st.text_input("Zebra", "Criciúma")
-    odd_zebra = st.number_input(f"Odd {nome_zebra}", min_value=1.01, value=8.00)
+    odd_zebra, is_poly_zebra = input_odd_or_cents(nome_zebra, default_odd=8.00, key_prefix="zebra")
     
     st.markdown("### 🛡️ Seguro Gols")
     lucro_bruto = (stake_fav * odd_fav) - stake_fav
@@ -175,7 +204,7 @@ with c3:
     """, unsafe_allow_html=True)
 
 # 4. Over 1.5 - Apenas Seguro
-lucro_4 = lucro_seguro - custo_total
+lucro_4 = (valor_seguro * odd_over) - custo_total
 roi_4 = (lucro_4 / custo_total) * 100 if custo_total > 0 else 0
 cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
 
@@ -195,24 +224,33 @@ st.caption(f"Total Investido: ${custo_total:,.2f}")
 st.sidebar.markdown("---")
 st.sidebar.header("📖 Manual de Operação")
 
+# Função auxiliar para exibir o valor correto no manual
+def get_display_value(mode, stake, odd, is_poly):
+    if is_poly:
+        cents = int(100 / odd)
+        return f"{cents}¢ (Amount: ${stake:,.2f})"
+    else:
+        return f"${stake:,.2f}"
+
 st.sidebar.markdown(f"""
 **1. Escolha o Mercado**
 Procure por: `{nome_fav} vs {nome_zebra}`.
 
 **2. Opção SIM (Favorito)**
 Se você acha que o {nome_fav} vence:
-* Clique em **YES**
-* Digite: **${stake_fav:,.2f}**
+* Escolha: **{"Polymarket (YES)" if is_poly_fav else "Casa (1)" if "1" in nome_fav else "Casa"}**
+* Digite: **{get_display_value("fav", stake_fav, odd_fav, is_poly_fav)}**
 
 **3. Opção NÃO (Proteção)**
 Para cobrir Empate e Zebra:
-* Clique em **NO**
-* Digite: **${(stake_empate + stake_zebra):,.2f}**
+* Escolha: **{"Polymarket (NO)" if is_poly_empate or is_poly_zebra else "Casa (X ou 2)"}**
+* Digite Empate: **{get_display_value("emp", stake_empate, odd_empate, is_poly_empate)}**
+* Digite Zebra: **{get_display_value("zebra", stake_zebra, odd_zebra, is_poly_zebra)}**
 * *Isso cobre qualquer tropeço do favorito.*
 
 **4. Seguro de Gols**
 Procure o mercado: `Total Goals Over 1.5`
-* Clique em **YES**
+* Escolha: **Casa**
 * Digite: **${valor_seguro:,.2f}**
 """)
 
