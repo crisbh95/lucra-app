@@ -109,33 +109,6 @@ def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
     
     return odd, is_polymarket, cents
 
-def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
-    modo = st.radio(
-        f"Modo {label}:",
-        ["Odd Decimal (Brasil)", "Centavos (Polymarket)"],
-        horizontal=True,
-        key=f"modo_{key_prefix}"
-    )
-    
-    if modo == "Centavos (Polymarket)":
-        cents = st.number_input(
-            f"Preço em Centavos ¢ ({label})",
-            min_value=1, max_value=99, value=43,
-            key=f"cents_{key_prefix}"
-        )
-        odd = 100 / cents
-        st.info(f"Equivalent Odd: {odd:.2f}")
-        is_polymarket = True
-    else:
-        odd = st.number_input(
-            f"Odd {label}",
-            min_value=1.01, value=default_odd, format="%.2f",
-            key=f"odd_{key_prefix}"
-        )
-        is_polymarket = False
-    
-    return odd, is_polymarket
-
 st.set_page_config(page_title="Lucra+ | Estratégia Completa", page_icon="🎯", layout="wide")
 
 # Inicializa session_state para stake
