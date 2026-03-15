@@ -3,11 +3,13 @@ import requests
 
 def buscar_mercado_polymarket(query):
     try:
-        # Tenta buscar na API oficial
+        # Busca apenas mercados ativos e não encerrados
         url = "https://clob.polymarket.com/markets"
         params = {
             "active": "true",
-            "limit": "20"
+            "closed": "false",
+            "order_by": "volume",
+            "limit": "50"
         }
         response = requests.get(url, params=params, timeout=10)
         
@@ -22,16 +24,42 @@ def buscar_mercado_polymarket(query):
                     
                     # Procura por times similares no nome
                     if query_lower in question or any(word in question for word in query_lower.split()):
+                        # Busca os precos dos outcomes
+                        outcomes = market.get("outcomes", [])
+                        tokens = market.get("tokens", [])
+                        
+                        precos = {}
+                        for i, outcome in enumerate(outcomes):
+                            if i < len(tokens):
+                                token_id = tokens[i]
+                                # Busca preco deste token
+                                try:
+                                    price_url = f"https://clob.polymarket.com/prices?token_ids={token_id}"
+                                    price_resp = requests.get(price_url, timeout=5)
+                                    if price_resp.status_code == 200:
+                                        price_data = price_resp.json()
+                                        if price_data and len(price_data) > 0:
+                                            precos[outcome.lower()] = price_data[0].get("price", 0) * 100
+                                except:
+                                    pass
+                        
                         markets.append({
                             "question": market.get("question"),
                             "id": market.get("id"),
                             "slug": market.get("slug"),
-                            "closed": market.get("closed", False)
+                            "closed": market.get("closed", False),
+                            "precos": precos
                         })
             return markets[:5]  # Retorna no maximo 5 resultados
         return []
     except Exception as e:
+        st.error(f"Erro ao buscar mercado: {e}")
         return []
+
+def importar_mercado(market):
+    """Importa os dados do mercado selecionado para os inputs"""
+    st.session_state["importar_mercado"] = market
+    st.rerun()
 
 def get_preco_central(price_data):
     if not price_data:
@@ -173,10 +201,13 @@ with col_inputs:
     
     valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.0, key="valor_seguro")
     
+    # Estrategia padrao para calculos temporarios
+    estrategia_calc = "💸 Lucro Máximo (Green Up)"
+    
     # Sugestao automatica do seguro (maximo 5% do investimento total)
     if is_poly_mode:
         # Primeiro calcula as stakers temporariamente para ter o custo total
-        if "Green Up" in estrategia:
+        if "Green Up" in estrategia_calc:
             lucro_fav_temp = stake_fav * (odd_fav - 1)
             stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
             stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
@@ -193,7 +224,7 @@ with col_inputs:
     # Ponto de Equilibrio - preco maximo em centavos para ter lucro no favorito
     if is_poly_fav:
         # Calcula o custo das protecoes para saber o ponto de equilibrio
-        if "Green Up" in estrategia:
+        if "Green Up" in estrategia_calc:
             lucro_fav_temp = stake_fav * (odd_fav - 1)
             stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
             stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
@@ -231,16 +262,63 @@ with col_estrategia:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🔎 Buscar"):
             if busca_api:
-                with st.spinner("Buscando mercados..."):
+                with st.spinner("Buscando mercados ativos..."):
                     markets = buscar_mercado_polymarket(busca_api)
                     if markets:
-                        st.success(f"Encontrados {len(markets)} mercados:")
-                        for m in markets:
+                        st.success(f"Encontrados {len(markets)} mercados ativos:")
+                        for i, m in enumerate(markets):
                             status = "❌ Encerrado" if m.get("closed") else "✅ Ativo"
                             link = f"https://polymarket.com/market/{m['slug']}" if m.get("slug") else polymarket_url
-                            st.markdown(f"- [{status}] [{m['question']}]({link})")
+                            
+                            # Mostra os precos se disponiveis
+                            precos = m.get("precos", {})
+                            precos_str = ""
+                            if precos:
+                                for outcome, price in precos.items():
+                                    precos_str += f" {outcome}: {price:.0f}¢ |"
+                            
+                            st.markdown(f"- [{status}] [{m['question']}]({link}) {precos_str}")
+                            
+                            if not m.get("closed") and precos:
+                                if st.button(f"📥 Usar este jogo", key=f"import_{i}"):
+                                    # Preenche os campos automaticamente
+                                    st.session_state["importar_mercado"] = m
+                                    st.rerun()
                     else:
-                        st.warning("Nenhum mercado ativo encontrado. Use o link abaixo para buscar manualmente.")
+                        st.warning("⚠️ Jogo não encontrado ou mercado fechado no momento.")
+    
+    # Verifica se ha um mercado para importar
+    if "importar_mercado" in st.session_state:
+        market = st.session_state["importar_mercado"]
+        precos = market.get("precos", {})
+        
+        if precos:
+            st.info(f"📥 Dados importados de: {market['question']}")
+            
+            # Tenta identificar favorito, empate e zebra pelos precos
+            outcomes = list(precos.keys())
+            precos_sorted = sorted(precos.items(), key=lambda x: x[1], reverse=True)
+            
+            if len(precos_sorted) >= 1:
+                # O maior preco = favorito
+                fav_outcome = precos_sorted[0][0]
+                fav_price = precos_sorted[0][1]
+                
+                if len(precos_sorted) >= 2:
+                    # O segundo maior = provavelmente zebra ou empate
+                    second_outcome = precos_sorted[1][0]
+                    second_price = precos_sorted[1][1]
+                    
+                    if len(precos_sorted) >= 3:
+                        third_outcome = precos_sorted[2][0]
+                        third_price = precos_sorted[2][1]
+                        
+                        # Atualiza os valores nos inputs (vai precisar recarregar a pagina)
+                        st.success("✅ Preços importados! Recarregue a página para aplicar.")
+                    else:
+                        st.success("✅ Preços importados! Recarregue a página para aplicar.")
+        
+        del st.session_state["importar_mercado"]
     
     st.markdown("---")
     
