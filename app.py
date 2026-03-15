@@ -492,6 +492,29 @@ lucro_1, lucro_2, lucro_3, lucro_4, custo_total = exibir_quatro_cenarios(
     odd_fav, odd_empate, odd_zebra, odd_over, ativar_seguro
 )
 
+# --- COMPROVANTE DE ENTRADA ---
+st.markdown("---")
+if st.button("🧾 Gerar Comprovante de Entrada"):
+    
+    def calc_shares(stake, odd):
+        # odd = 100 / cents -> cents = 100 / odd
+        # shares = stake / (cents / 100) -> stake / (1 / odd) -> stake * odd
+        shares = stake * odd
+        return shares
+        
+    shares_fav = calc_shares(stake_fav, odd_fav)
+    shares_emp = calc_shares(stake_empate, odd_empate)
+    shares_zeb = calc_shares(stake_zebra, odd_zebra)
+    
+    st.info(f"📋 **Resumo para Polymarket:**")
+    st.markdown(f"✅ Comprar **YES** em `{nome_fav}`: **${stake_fav:,.2f}** (Aprox. {shares_fav:,.2f} Shares)")
+    st.markdown(f"✅ Comprar **YES** em `{nome_empate}`: **${stake_empate:,.2f}** (Aprox. {shares_emp:,.2f} Shares)")
+    st.markdown(f"✅ Comprar **YES** em `{nome_zebra}`: **${stake_zebra:,.2f}** (Aprox. {shares_zeb:,.2f} Shares)")
+    
+    if ativar_seguro and valor_seguro > 0:
+        shares_seg = calc_shares(valor_seguro, odd_over)
+        st.markdown(f"✅ Comprar **YES** no `Over 1.5`: **${valor_seguro:,.2f}** (Aprox. {shares_seg:,.2f} Shares)")
+
 # --- VERIFICACAO DE VIABILIDADE ---
 # Verifica se algum cenario esta negativo
 if lucro_1 < 0 or lucro_2 < 0 or lucro_3 < 0:
