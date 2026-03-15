@@ -231,14 +231,10 @@ with col_inputs:
     # Sugestao automatica do seguro (maximo 5% do investimento total)
     if is_poly_mode:
         # Primeiro calcula as stakers temporariamente para ter o custo total
-        # Usamos o modo Maximizar Lucro por padrao para a estimativa
-        denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
-        if denominador_temp > 0:
-            stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
-            stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
-        else:
-            stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-            stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+        # Usamos o modo Maximizar Lucro (sequencial) por padrao para a estimativa
+        custo_base_temp = stake_fav + valor_seguro
+        stake_empate_temp = custo_base_temp / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+        stake_zebra_temp = (custo_base_temp + stake_empate_temp) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         
         custo_principal = stake_fav + stake_empate_temp + stake_zebra_temp
         limite_seguro = custo_principal * 0.05
@@ -249,14 +245,10 @@ with col_inputs:
     # Ponto de Equilibrio - preco maximo em centavos para ter lucro no favorito
     if is_poly_fav:
         # Calcula o custo das protecoes para saber o ponto de equilibrio
-        # Usamos O modo Maximizar Lucro para a base do calculo
-        denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
-        if denominador_temp > 0:
-            stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
-            stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
-        else:
-            stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-            stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+        # Usamos O modo Maximizar Lucro (sequencial) para a base do calculo
+        custo_base_temp = stake_fav + valor_seguro
+        stake_empate_temp = custo_base_temp / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+        stake_zebra_temp = (custo_base_temp + stake_empate_temp) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         
         custo_protecoes = stake_empate_temp + stake_zebra_temp + valor_seguro
         custo_total_estimado = stake_fav + custo_protecoes
@@ -273,6 +265,25 @@ with col_inputs:
             st.success("✅ Com este favorito forte, você já tem lucro garantido!")
 
 with col_estrategia:
+    st.markdown("### 📊 Soma do Mercado")
+    if is_poly_mode:
+        soma_mercado = cents_fav + cents_empate + cents_zebra
+        if soma_mercado >= 100:
+            st.error(f"❌ SEM MARGEM: Você está apenas trocando dinheiro com o mercado. (Soma: {soma_mercado}¢)")
+        else:
+            st.success(f"✅ MARGEM DETECTADA: O lucro aparecerá no favorito. (Soma: {soma_mercado}¢)")
+    else:
+        # Modo Decimal (Apenas para exibir se a prob < 100%)
+        prob_fav_m = (1/odd_fav) * 100
+        prob_emp_m = (1/odd_empate) * 100
+        prob_zeb_m = (1/odd_zebra) * 100
+        soma_mercado = prob_fav_m + prob_emp_m + prob_zeb_m
+        if soma_mercado >= 100:
+            st.error(f"❌ SEM MARGEM: Você está apenas trocando dinheiro com o mercado. (Soma: {soma_mercado:.1f}%)")
+        else:
+            st.success(f"✅ MARGEM DETECTADA: O lucro aparecerá no favorito. (Soma: {soma_mercado:.1f}%)")
+            
+    st.markdown("---")
     st.markdown("### 🎯 Estratégia")
     
     # Botao para abrir no Polymarket
@@ -339,15 +350,11 @@ with col_estrategia:
         stake_zebra = retorno_total / odd_zebra if odd_zebra > 0 else 0
         st.success("✅ Partilha de Lucros: O prêmio será igual independente de quem vencer.")
     else:
-        # Maximizar Lucro (Favorito) com Cobertura Cruzada Mútua
-        denominador = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
-        if denominador > 0:
-            stake_empate = ((stake_fav + valor_seguro) * odd_zebra) / denominador
-            stake_zebra = ((stake_fav + valor_seguro) * odd_empate) / denominador
-        else:
-            # Fallback (Matematicamente impossível cobrir ambos simultaneamente zerados)
-            stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-            stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+        # Maximizar Lucro (Favorito) com Lógica Sequencial à Prova de Falhas
+        custo_base = stake_fav + valor_seguro
+        stake_empate = custo_base / (odd_empate - 1.0) if odd_empate > 1.0 else 0
+        stake_zebra = (custo_base + stake_empate) / (odd_zebra - 1.0) if odd_zebra > 1.0 else 0
+        
         st.success("✅ Proteção Matemática Ativada: Empate e Zebra cobrem custos ($0.00), focando no Favorito.")
 
     st.markdown(f"""
@@ -499,7 +506,7 @@ lucro_1, lucro_2, lucro_3, lucro_4, custo_total = exibir_quatro_cenarios(
     odd_fav, odd_empate, odd_zebra, odd_over, ativar_seguro
 )
 
-# --- COMPROVANTE DE ENTRADA ---
+# --- ORDEM DE EXECUÇÃO ---
 st.markdown("---")
 if "mostrar_comprovante" not in st.session_state:
     st.session_state["mostrar_comprovante"] = False
@@ -507,11 +514,11 @@ if "mostrar_comprovante" not in st.session_state:
 col_gerar, col_limpar_comp = st.columns([1, 1])
 
 with col_gerar:
-    if st.button("🧾 Gerar Comprovante", use_container_width=True):
+    if st.button("🧾 Gerar Ordem de Execução", use_container_width=True):
         st.session_state["mostrar_comprovante"] = True
 
 with col_limpar_comp:
-    if st.button("🗑️ Limpar Comprovante", use_container_width=True):
+    if st.button("🗑️ Limpar Ordem", use_container_width=True):
         st.session_state["mostrar_comprovante"] = False
         st.rerun()
 
@@ -527,27 +534,27 @@ if st.session_state["mostrar_comprovante"]:
     shares_zeb = calc_shares(stake_zebra, odd_zebra)
     
     st.info(f"📋 **Resumo para Polymarket:**")
-    st.markdown(f"✅ Comprar **YES** em `{nome_fav}`: **${stake_fav:,.2f}** (Aprox. {shares_fav:,.2f} Shares)")
-    st.markdown(f"✅ Comprar **YES** em `{nome_empate}`: **${stake_empate:,.2f}** (Aprox. {shares_emp:,.2f} Shares)")
-    st.markdown(f"✅ Comprar **YES** em `{nome_zebra}`: **${stake_zebra:,.2f}** (Aprox. {shares_zeb:,.2f} Shares)")
+    st.markdown(f"Compre **$ {stake_fav:,.2f}** de YES no **{nome_fav}**")
+    st.markdown(f"Compre **$ {stake_empate:,.2f}** de YES no **{nome_empate}**")
+    st.markdown(f"Compre **$ {stake_zebra:,.2f}** de YES no **{nome_zebra}**")
     
-    texto_comprovante = f"📋 Resumo de Entradas - Lucra+\n==============================\n"
-    texto_comprovante += f"✅ Comprar YES em {nome_fav}: ${stake_fav:,.2f} (Aprox. {shares_fav:,.2f} Shares)\n"
-    texto_comprovante += f"✅ Comprar YES em {nome_empate}: ${stake_empate:,.2f} (Aprox. {shares_emp:,.2f} Shares)\n"
-    texto_comprovante += f"✅ Comprar YES em {nome_zebra}: ${stake_zebra:,.2f} (Aprox. {shares_zeb:,.2f} Shares)\n"
+    texto_comprovante = f"📋 Ordem de Execução - Lucra+\n==============================\n"
+    texto_comprovante += f"Compre $ {stake_fav:,.2f} de YES no {nome_fav}\n"
+    texto_comprovante += f"Compre $ {stake_empate:,.2f} de YES no {nome_empate}\n"
+    texto_comprovante += f"Compre $ {stake_zebra:,.2f} de YES no {nome_zebra}\n"
     
     if ativar_seguro and valor_seguro > 0:
         shares_seg = calc_shares(valor_seguro, odd_over)
-        st.markdown(f"✅ Comprar **YES** no `Over 1.5`: **${valor_seguro:,.2f}** (Aprox. {shares_seg:,.2f} Shares)")
-        texto_comprovante += f"✅ Comprar YES no Over 1.5: ${valor_seguro:,.2f} (Aprox. {shares_seg:,.2f} Shares)\n"
+        st.markdown(f"Compre **$ {valor_seguro:,.2f}** de YES no **Over 1.5**")
+        texto_comprovante += f"Compre $ {valor_seguro:,.2f} de YES no Over 1.5\n"
         
     texto_comprovante += "==============================\nBoa sorte!"
     
     st.markdown("<br>", unsafe_allow_html=True)
     st.download_button(
-        label="💾 Baixar Comprovante (TXT)",
+        label="💾 Baixar Ordem (TXT)",
         data=texto_comprovante,
-        file_name="comprovante_lucra.txt",
+        file_name="ordem_execucao_lucra.txt",
         mime="text/plain",
         use_container_width=True
     )
