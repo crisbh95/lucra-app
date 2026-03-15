@@ -47,6 +47,33 @@ risco_pct = st.sidebar.slider("% Risco por Jogo", 1, 20, 5)
 limite_max = banca_total * (risco_pct / 100)
 st.sidebar.markdown(f"**Limite:** ${limite_max:,.2f}")
 
+# --- MANUAL ILUSTRATIVO NA BARRA LATERAL ---
+st.sidebar.markdown("---")
+st.sidebar.header("📖 Manual de Operação")
+
+st.sidebar.markdown(f"""
+**1. Escolha o Mercado**
+Procure por: `{nome_fav} vs {nome_zebra}`.
+
+**2. Opção SIM (Favorito)**
+Se você acha que o {nome_fav} vence:
+* Clique em **YES**
+* Digite: **${stake_fav:,.2f}**
+
+**3. Opção NÃO (Proteção)**
+Para cobrir Empate e Zebra:
+* Clique em **NO**
+* Digite: **${(stake_empate + stake_zebra):,.2f}**
+* *Isso cobre qualquer tropeço do favorito.*
+
+**4. Seguro de Gols**
+Procure o mercado: `Total Goals Over 1.5`
+* Clique em **YES**
+* Digite: **${valor_seguro:,.2f}**
+""")
+
+st.sidebar.info("💡 Dica: O 'NÃO' no favorito substitui as apostas individuais em Empate e Zebra.")
+
 # --- FLUXO PRINCIPAL ---
 st.header("⚽ Jogo Completo")
 
