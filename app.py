@@ -331,6 +331,7 @@ with col_estrategia:
         # Fórmula: stake * (odd - 1.0) = stake_fav + valor_seguro
         stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
         stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+        st.success("✅ Proteção Matemática Ativada: Empate e Zebra agora cobrem 100% dos custos.")
 
     st.markdown(f"""
     <div class="card" style="border-color: #FF3B30;">
