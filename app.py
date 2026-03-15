@@ -189,7 +189,9 @@ with col_inputs:
     if is_poly_mode:
         total_cents = cents_fav + cents_empate + cents_zebra
         
-        if total_cents > 100:
+        if total_cents > 102:
+            st.error("⚠️ Jogo com taxa muito alta. A proteção vai custar mais que o lucro. Procure outro mercado.")
+        elif total_cents > 100:
             st.warning(f"⚠️ Aviso: A soma dos centavos é {total_cents} (o mercado tem ~3% de taxa/spread). Os cálculos continuarão.")
         
         # Sugestao automatica baseada no que sobra
@@ -355,16 +357,22 @@ with col_estrategia:
             # Preço do favorito (ex: 52 centavos vira 0.52)
             preco_fav = cents_fav / 100
             
-            # Fórmula matemática para garantir que o prêmio do favorito 
-            # cubra o custo e sobre 10% de lucro sobre o investimento total
-            # Stake = (Custo Proteções * 1.10) / (1 - preco_fav)
-            stake_minima = (custo_total_protecoes * 1.10) / (1 - preco_fav)
-            
-            # Atualiza o valor no session_state para persistir
-            st.session_state["stake_fav"] = stake_minima
-            
-            st.success(f"💰 Stake atualizada para: **${stake_minima:.2f}**")
-            st.rerun()
+            # Verifica se é matematicamente possível
+            # Se o favorito está muito barato (cents_fav baixo), o denominador (1 - preco_fav) será alto
+            # e a stake necessária pode ficar infinita ou impossível
+            if (1 - preco_fav) <= 0:
+                st.error("❌ Matematicamente impossível lucrar em todos os cenários com estes preços.")
+            else:
+                # Fórmula matemática para garantir que o prêmio do favorito 
+                # cubra o custo e sobre 10% de lucro sobre o investimento total
+                # Stake = (Custo Proteções * 1.10) / (1 - preco_fav)
+                stake_minima = (custo_total_protecoes * 1.10) / (1 - preco_fav)
+                
+                # Atualiza o valor no session_state para persistir
+                st.session_state["stake_fav"] = stake_minima
+                
+                st.success(f"💰 Stake atualizada para: **${stake_minima:.2f}**")
+                st.rerun()
     
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
