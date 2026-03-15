@@ -111,6 +111,10 @@ def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
 
 st.set_page_config(page_title="Lucra+ | Estratégia Completa", page_icon="🎯", layout="wide")
 
+# Inicializa session_state para stake
+if "stake_fav" not in st.session_state:
+    st.session_state["stake_fav"] = 60.0
+
 # --- CSS Custom ---
 st.markdown("""
 <style>
