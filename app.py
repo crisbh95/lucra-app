@@ -264,77 +264,11 @@ with col_estrategia:
     
     # Campo de busca na API
     st.markdown("#### 🔍 Buscar Jogo no Polymarket")
-    col_busca1, col_busca2 = st.columns([3, 1])
-    with col_busca1:
-        busca_api = st.text_input("Digite o nome do jogo para buscar:", placeholder="Ex: Flamengo Criciuma", key="busca_api")
-    with col_busca2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔎 Buscar"):
-            if busca_api:
-                with st.spinner("Buscando mercados ativos..."):
-                    markets = buscar_mercado_polymarket(busca_api)
-                    if markets:
-                        st.success(f"Encontrados {len(markets)} mercados:")
-                        for i, m in enumerate(markets):
-                            status = "❌ Encerrado" if m.get("closed") else "✅ Ativo"
-                            link = f"https://polymarket.com/market/{m['slug']}" if m.get("slug") else polymarket_url
-                            
-                            # Mostra os precos se disponiveis
-                            precos = m.get("precos", {})
-                            precos_str = ""
-                            if precos:
-                                for outcome, price in precos.items():
-                                    precos_str += f" {outcome}: {price:.0f}¢ |"
-                            
-                            st.markdown(f"- [{status}] [{m['question']}]({link}) {precos_str}")
-                            
-                            if not m.get("closed") and precos:
-                                if st.button(f"📥 Usar este jogo", key=f"import_{i}"):
-                                    # Preenche os campos automaticamente
-                                    st.session_state["importar_mercado"] = m
-                                    st.rerun()
-                    else:
-                        st.warning("⚠️ Jogo não encontrado na API. Use o link abaixo para buscar no site.")
-    
-    # Verifica se ha um mercado para importar
-    if "importar_mercado" in st.session_state:
-        market = st.session_state["importar_mercado"]
-        precos = market.get("precos", {})
-        
-        if precos:
-            st.info(f"📥 Dados importados de: {market['question']}")
-            
-            # Tenta identificar favorito, empate e zebra pelos precos
-            outcomes = list(precos.keys())
-            precos_sorted = sorted(precos.items(), key=lambda x: x[1], reverse=True)
-            
-            if len(precos_sorted) >= 1:
-                # O maior preco = favorito
-                fav_outcome = precos_sorted[0][0]
-                fav_price = precos_sorted[0][1]
-                
-                if len(precos_sorted) >= 2:
-                    # O segundo maior = provavelmente zebra ou empate
-                    second_outcome = precos_sorted[1][0]
-                    second_price = precos_sorted[1][1]
-                    
-                    if len(precos_sorted) >= 3:
-                        third_outcome = precos_sorted[2][0]
-                        third_price = precos_sorted[2][1]
-                        
-                        # Atualiza os valores nos inputs (vai precisar recarregar a pagina)
-                        st.success("✅ Preços importados! Recarregue a página para aplicar.")
-                    else:
-                        st.success("✅ Preços importados! Recarregue a página para aplicar.")
-        
-        del st.session_state["importar_mercado"]
+    st.markdown(f"[🌐 Abrir Jogo no Polymarket]({polymarket_url})")
     
     st.markdown("---")
     
     estrategia = st.radio("Tipo", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Break Even)"])
-    
-    # Link para Polymarket
-    st.markdown(f"[🌐 Abrir Jogo no Polymarket]({polymarket_url})")
     
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
