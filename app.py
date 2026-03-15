@@ -153,6 +153,11 @@ st.markdown("""
 
 st.title("🎯 Lucra+ | Estratégia Completa (3 Caminhos)")
 
+if st.button("🗑️ Limpar Jogo Atual"):
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+
 st.info("💡 **Dica Polymarket:** No campo Amount do Polymarket, você digita o valor em Dólares (Stake). O site calcula sozinho quantas 'Shares' você compra.")
 
 # --- BARRA LATERAL ---
@@ -226,18 +231,14 @@ with col_inputs:
     # Sugestao automatica do seguro (maximo 5% do investimento total)
     if is_poly_mode:
         # Primeiro calcula as stakers temporariamente para ter o custo total
-        if "Green Up" in estrategia_calc:
-            lucro_fav_temp = stake_fav * (odd_fav - 1)
-            stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-            stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        # Usamos o modo Maximizar Lucro por padrao para a estimativa
+        denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
+        if denominador_temp > 0:
+            stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
+            stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
         else:
-            denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
-            if denominador_temp > 0:
-                stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
-                stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
-            else:
-                stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-                stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+            stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+            stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         
         custo_principal = stake_fav + stake_empate_temp + stake_zebra_temp
         limite_seguro = custo_principal * 0.05
@@ -248,18 +249,14 @@ with col_inputs:
     # Ponto de Equilibrio - preco maximo em centavos para ter lucro no favorito
     if is_poly_fav:
         # Calcula o custo das protecoes para saber o ponto de equilibrio
-        if "Green Up" in estrategia_calc:
-            lucro_fav_temp = stake_fav * (odd_fav - 1)
-            stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-            stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        # Usamos O modo Maximizar Lucro para a base do calculo
+        denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
+        if denominador_temp > 0:
+            stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
+            stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
         else:
-            denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
-            if denominador_temp > 0:
-                stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
-                stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
-            else:
-                stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-                stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+            stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+            stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         
         custo_protecoes = stake_empate_temp + stake_zebra_temp + valor_seguro
         custo_total_estimado = stake_fav + custo_protecoes
@@ -288,7 +285,7 @@ with col_estrategia:
     
     st.markdown("---")
     
-    estrategia = st.radio("Tipo", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Break Even)"])
+    estrategia = st.radio("Objetivo da Operação", ["🛡️ Cercar Jogo (Break Even)", "💸 Maximizar Lucro (Favorito)"])
     
     # Botao de Otimizacao
     if st.button("⚡ Otimizar Lucro"):
@@ -335,13 +332,14 @@ with col_estrategia:
             st.info(f"💡 Preço máximo sugerido: Empate {cents_empate_max}¢ | Zebra {cents_zebra_max}¢")
     
     # Cálculo da Cobertura
-    if "Green Up" in estrategia:
-        lucro_fav = stake_fav * (odd_fav - 1.0)
-        stake_empate = lucro_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-        stake_zebra = lucro_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+    if "Cercar Jogo" in estrategia:
+        # Equal Profit - Partilha Igualitária
+        retorno_total = stake_fav * odd_fav
+        stake_empate = retorno_total / odd_empate if odd_empate > 0 else 0
+        stake_zebra = retorno_total / odd_zebra if odd_zebra > 0 else 0
+        st.success("✅ Partilha de Lucros: O prêmio será igual independente de quem vencer.")
     else:
-        # Break Even com Cobertura Cruzada (Mútua)
-        # Para o lucro ser EXATAMENTE $0.00, o Empate precisa cobrir a aposta da Zebra, e vice-versa.
+        # Maximizar Lucro (Favorito) com Cobertura Cruzada Mútua
         denominador = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
         if denominador > 0:
             stake_empate = ((stake_fav + valor_seguro) * odd_zebra) / denominador
@@ -350,7 +348,7 @@ with col_estrategia:
             # Fallback (Matematicamente impossível cobrir ambos simultaneamente zerados)
             stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
             stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
-        st.success("✅ Proteção Matemática Ativada: Empate e Zebra agora cobrem 100% dos custos.")
+        st.success("✅ Proteção Matemática Ativada: Empate e Zebra cobrem custos ($0.00), focando no Favorito.")
 
     st.markdown(f"""
     <div class="card" style="border-color: #FF3B30;">
@@ -503,8 +501,21 @@ lucro_1, lucro_2, lucro_3, lucro_4, custo_total = exibir_quatro_cenarios(
 
 # --- COMPROVANTE DE ENTRADA ---
 st.markdown("---")
-if st.button("🧾 Gerar Comprovante de Entrada"):
-    
+if "mostrar_comprovante" not in st.session_state:
+    st.session_state["mostrar_comprovante"] = False
+
+col_gerar, col_limpar_comp = st.columns([1, 1])
+
+with col_gerar:
+    if st.button("🧾 Gerar Comprovante", use_container_width=True):
+        st.session_state["mostrar_comprovante"] = True
+
+with col_limpar_comp:
+    if st.button("🗑️ Limpar Comprovante", use_container_width=True):
+        st.session_state["mostrar_comprovante"] = False
+        st.rerun()
+
+if st.session_state["mostrar_comprovante"]:
     def calc_shares(stake, odd):
         # odd = 100 / cents -> cents = 100 / odd
         # shares = stake / (cents / 100) -> stake / (1 / odd) -> stake * odd
@@ -520,11 +531,31 @@ if st.button("🧾 Gerar Comprovante de Entrada"):
     st.markdown(f"✅ Comprar **YES** em `{nome_empate}`: **${stake_empate:,.2f}** (Aprox. {shares_emp:,.2f} Shares)")
     st.markdown(f"✅ Comprar **YES** em `{nome_zebra}`: **${stake_zebra:,.2f}** (Aprox. {shares_zeb:,.2f} Shares)")
     
+    texto_comprovante = f"📋 Resumo de Entradas - Lucra+\n==============================\n"
+    texto_comprovante += f"✅ Comprar YES em {nome_fav}: ${stake_fav:,.2f} (Aprox. {shares_fav:,.2f} Shares)\n"
+    texto_comprovante += f"✅ Comprar YES em {nome_empate}: ${stake_empate:,.2f} (Aprox. {shares_emp:,.2f} Shares)\n"
+    texto_comprovante += f"✅ Comprar YES em {nome_zebra}: ${stake_zebra:,.2f} (Aprox. {shares_zeb:,.2f} Shares)\n"
+    
     if ativar_seguro and valor_seguro > 0:
         shares_seg = calc_shares(valor_seguro, odd_over)
         st.markdown(f"✅ Comprar **YES** no `Over 1.5`: **${valor_seguro:,.2f}** (Aprox. {shares_seg:,.2f} Shares)")
+        texto_comprovante += f"✅ Comprar YES no Over 1.5: ${valor_seguro:,.2f} (Aprox. {shares_seg:,.2f} Shares)\n"
+        
+    texto_comprovante += "==============================\nBoa sorte!"
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.download_button(
+        label="💾 Baixar Comprovante (TXT)",
+        data=texto_comprovante,
+        file_name="comprovante_lucra.txt",
+        mime="text/plain",
+        use_container_width=True
+    )
 
 # --- VERIFICACAO DE VIABILIDADE ---
+if "Maximizar" in estrategia and lucro_1 <= 0.00:
+    st.warning("⚠️ Jogo Inviável: Proteções muito caras para esta Odd")
+
 # Verifica se algum cenario esta negativo
 if lucro_1 < 0 or lucro_2 < 0 or lucro_3 < 0:
     st.error("🔴 JOGO INVIÁVEL: O custo das proteções é maior que o lucro do favorito.")
