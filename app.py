@@ -171,7 +171,7 @@ with col_inputs:
     st.markdown("### 📝 Inputs")
     nome_fav = st.text_input("Favorito", "Flamengo")
     odd_fav, is_poly_fav, cents_fav = input_odd_or_cents(nome_fav, default_odd=1.50, key_prefix="fav")
-    stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=60.0)
+    stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=st.session_state.get("stake_fav", 60.0))
     
     nome_empate = st.text_input("Empate", "Empate")
     odd_empate, is_poly_empate, cents_empate = input_odd_or_cents(nome_empate, default_odd=4.00, key_prefix="emp")
@@ -340,19 +340,27 @@ with col_estrategia:
     
     # Botao de Stake Minima
     if st.button("🚀 Calcular Stake Mínima (Lucro 10%)"):
-        # Soma de quanto você está gastando para proteger o jogo
-        custo_total_protecoes = stake_empate + stake_zebra + valor_seguro
-        
-        # Preço do favorito (ex: 52 centavos vira 0.52)
-        preco_fav = cents_fav / 100
-        
-        # Fórmula matemática para garantir que o prêmio do favorito 
-        # cubra o custo e sobre 10% de lucro sobre o investimento total
-        # Stake = (Custo Proteções * 1.10) / (1 - preco_fav)
-        stake_minima = (custo_total_protecoes * 1.10) / (1 - preco_fav)
-        
-        st.success(f"💰 Para lucrar 10% no favorito, use Stake de: **${stake_minima:.2f}**")
-        st.write(f"Nesse cenário, se o favorito vencer, você paga as proteções e sobra o lucro real.")
+        # Verifica se o mercado nao esta muito caro
+        soma_cents = cents_fav + cents_empate + cents_zebra
+        if soma_cents > 105:
+            st.error("❌ Mercado muito caro para operar com proteção. Aguarde as odds subirem.")
+        else:
+            # Soma de quanto você está gastando para proteger o jogo
+            custo_total_protecoes = stake_empate + stake_zebra + valor_seguro
+            
+            # Preço do favorito (ex: 52 centavos vira 0.52)
+            preco_fav = cents_fav / 100
+            
+            # Fórmula matemática para garantir que o prêmio do favorito 
+            # cubra o custo e sobre 10% de lucro sobre o investimento total
+            # Stake = (Custo Proteções * 1.10) / (1 - preco_fav)
+            stake_minima = (custo_total_protecoes * 1.10) / (1 - preco_fav)
+            
+            # Atualiza o valor no session_state para persistir
+            st.session_state["stake_fav"] = stake_minima
+            
+            st.success(f"💰 Stake atualizada para: **${stake_minima:.2f}**")
+            st.rerun()
     
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
