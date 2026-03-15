@@ -102,7 +102,7 @@ def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
     else:
         odd = st.number_input(
             f"Odd {label}",
-            min_value=1.01, value=default_odd, format="%.2f",
+            min_value=1.01, value=float(default_odd), step=0.05, format="%.2f",
             key=f"odd_{key_prefix}"
         )
         is_polymarket = False
