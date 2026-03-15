@@ -153,10 +153,6 @@ st.markdown("""
 
 st.title("🎯 Lucra+ | Estratégia Completa (3 Caminhos)")
 
-# Botao para limpar dados
-if st.button("🗑️ Limpar Dados"):
-    st.rerun()
-
 st.info("💡 **Dica Polymarket:** No campo Amount do Polymarket, você digita o valor em Dólares (Stake). O site calcula sozinho quantas 'Shares' você compra.")
 
 # --- BARRA LATERAL ---
@@ -581,3 +577,23 @@ Procure o mercado: `Total Goals Over 1.5`
 """)
 
 st.sidebar.info("💡 Lembrete: O 'NÃO' no favorito substitui as apostas individuais em Empate e Zebra.")
+
+st.sidebar.markdown("---")
+with st.sidebar.expander("🚦 Guia de Operação", expanded=False):
+    st.markdown("""
+**🟢 TUDO VERDE:** Favorito com lucro e Proteções em $0.00. (Sinal para Apostar).
+*Como usar:* Olhou o robô e o card do Favorito está verde e os outros em $0.00? É o sinal 🟢. Pode fazer a aposta no Polymarket sem medo.
+
+**🟠 LARANJA:** Favorito no prejuízo, mas Proteções em $0.00. (Custo de proteção muito alto).
+*Como usar:* O card do Favorito está negativo (mesmo o empate estando em $0.00)? É o sinal 🟠. Significa que o seguro ou a proteção estão caros demais para essa Odd. Melhor não entrar.
+
+**🔴 TUDO VERMELHO:** Todos os cards negativos. (Erro de Odd ou Matemática).
+*Como usar:* Apareceu tudo negativo? É o sinal 🔴. Pare tudo e verifique se as odds foram digitadas corretamente.
+""")
+
+# --- RESET DE DADOS ---
+st.sidebar.markdown("---")
+if st.sidebar.button("🗑️ Limpar Dados"):
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
