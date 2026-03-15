@@ -339,18 +339,20 @@ with col_estrategia:
     """, unsafe_allow_html=True)
     
     # Botao de Stake Minima
-    if st.button("🚀 Calcular Stake Mínima"):
-        # Custo das proteções atuais
-        custo_protecoes = stake_empate + stake_zebra + valor_seguro
+    if st.button("🚀 Calcular Stake Mínima (Lucro 10%)"):
+        # Soma de quanto você está gastando para proteger o jogo
+        custo_total_protecoes = stake_empate + stake_zebra + valor_seguro
         
-        # Preço do favorito em decimal (ex: 52 centavos -> 0.52)
-        preco_fav_decimal = cents_fav / 100
+        # Preço do favorito (ex: 52 centavos vira 0.52)
+        preco_fav = cents_fav / 100
         
-        # Fórmula: Stake necessária para o prêmio cobrir todo o custo e ainda sobrar 5% de lucro
-        stake_necessaria = (custo_protecoes * 1.05) / (1 - preco_fav_decimal)
+        # Fórmula matemática para garantir que o prêmio do favorito 
+        # cubra o custo e sobre 10% de lucro sobre o investimento total
+        # Stake = (Custo Proteções * 1.10) / (1 - preco_fav)
+        stake_minima = (custo_total_protecoes * 1.10) / (1 - preco_fav)
         
-        st.success(f"✅ Cris, para ficar tudo verde, sua Stake no Favorito deve ser: **${stake_necessaria:.2f}**")
-        st.info(f"Com esse valor, o prêmio do favorito paga todas as proteções e sobra lucro!")
+        st.success(f"💰 Para lucrar 10% no favorito, use Stake de: **${stake_minima:.2f}**")
+        st.write(f"Nesse cenário, se o favorito vencer, você paga as proteções e sobra o lucro real.")
     
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
