@@ -8,6 +8,8 @@ def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
         key=f"modo_{key_prefix}"
     )
     
+    cents = 0
+    
     if modo == "Centavos (Polymarket)":
         cents = st.number_input(
             f"Preço em Centavos ¢ ({label})",
@@ -25,7 +27,7 @@ def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
         )
         is_polymarket = False
     
-    return odd, is_polymarket
+    return odd, is_polymarket, cents
 
 st.set_page_config(page_title="Lucra+ | Estratégia Completa", page_icon="🎯", layout="wide")
 
@@ -84,14 +86,33 @@ col_inputs, col_estrategia = st.columns([1, 1])
 with col_inputs:
     st.markdown("### 📝 Inputs")
     nome_fav = st.text_input("Favorito", "Flamengo")
-    odd_fav, is_poly_fav = input_odd_or_cents(nome_fav, default_odd=1.50, key_prefix="fav")
+    odd_fav, is_poly_fav, cents_fav = input_odd_or_cents(nome_fav, default_odd=1.50, key_prefix="fav")
     stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=60.0)
     
     nome_empate = st.text_input("Empate", "Empate")
-    odd_empate, is_poly_empate = input_odd_or_cents(nome_empate, default_odd=4.00, key_prefix="emp")
+    odd_empate, is_poly_empate, cents_empate = input_odd_or_cents(nome_empate, default_odd=4.00, key_prefix="emp")
     
     nome_zebra = st.text_input("Zebra", "Criciúma")
-    odd_zebra, is_poly_zebra = input_odd_or_cents(nome_zebra, default_odd=8.00, key_prefix="zebra")
+    odd_zebra, is_poly_zebra, cents_zebra = input_odd_or_cents(nome_zebra, default_odd=8.00, key_prefix="zebra")
+    
+    # Validacao e sugestao automatica para Polymarket
+    is_poly_mode = is_poly_fav or is_poly_empate or is_poly_zebra
+    
+    if is_poly_mode:
+        total_cents = cents_fav + cents_empate + cents_zebra
+        
+        if total_cents > 100:
+            st.error(f"⚠️ Erro: A soma dos centavos ({total_cents}) não pode ultrapassar 100.")
+        
+        # Sugestao automatica baseada no que sobra
+        if is_poly_fav and not is_poly_empate and not is_poly_zebra:
+            if total_cents < 100:
+                suggested_emp = 100 - total_cents
+                st.success(f"💡 Sugestão: Para um mercado justo, o Empate deveria estar em ~{suggested_emp}¢ e a Zebra em ~1¢ (ou vice-versa).")
+        elif is_poly_fav and is_poly_empate and not is_poly_zebra:
+            if total_cents < 100:
+                suggested_zebra = 100 - total_cents
+                st.success(f"💡 Sugestão: Para um mercado justo, a Zebra deveria estar em ~{suggested_zebra}¢.")
     
     st.markdown("### 🛡️ Seguro Gols")
     lucro_bruto = (stake_fav * odd_fav) - stake_fav
