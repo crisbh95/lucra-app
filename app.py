@@ -542,17 +542,7 @@ with st.sidebar.expander("📖 Manual de Operação", expanded=False):
         else:
             return f"${stake:,.2f}"
 
-    return f"${stake:,.2f}"
-
-# Função auxiliar para exibir o valor correto no manual
-def get_display_value(mode, stake, odd, is_poly):
-    if is_poly:
-        cents = int(100 / odd)
-        return f"{cents}¢ (Amount: ${stake:,.2f})"
-    else:
-        return f"${stake:,.2f}"
-
-st.sidebar.markdown(f"""
+    st.sidebar.markdown(f"""
 **1. Escolha o Mercado**
 Procure por: `{nome_fav} vs {nome_zebra}`.
 
