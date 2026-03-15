@@ -618,8 +618,19 @@ else:
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🔊 Alertas do Scanner")
 ativar_som = st.sidebar.checkbox("🔔 Ativar Alerta Sonoro", value=True)
+volume_som = st.sidebar.slider("Volume do Alerta", min_value=0.0, max_value=1.0, value=0.5, step=0.1)
+
+import streamlit.components.v1 as components
+def tocar_alerta(b64_audio, vol):
+    components.html(
+        f'<audio autoplay id="som"><source src="data:audio/wav;base64,{b64_audio}" type="audio/wav"></audio>'
+        f'<script>document.getElementById("som").volume = {vol};</script>',
+        width=0, height=0
+    )
+
 if st.sidebar.button("🔊 Testar Som"):
-    st.markdown(f'<audio autoplay><source src="data:audio/wav;base64,{AUDIO_CASH_B64}" type="audio/wav"></audio>', unsafe_allow_html=True)
+    if ativar_som:
+        tocar_alerta(AUDIO_CASH_B64, volume_som)
 
 with tab2:
     st.header("🔍 Scanner Polymarket (Soccer 1x2)")
@@ -727,9 +738,9 @@ with tab2:
                         st.success(f"Busca finalizada! {encontrados} oportunidades localizadas.")
                         if ativar_som:
                             if menor_margem_encontrada < 98.0:
-                                st.markdown(f'<audio autoplay><source src="data:audio/wav;base64,{AUDIO_CASH_B64}" type="audio/wav"></audio>', unsafe_allow_html=True)
+                                tocar_alerta(AUDIO_CASH_B64, volume_som)
                             elif menor_margem_encontrada < 99.0:
-                                st.markdown(f'<audio autoplay><source src="data:audio/wav;base64,{AUDIO_BEEP_B64}" type="audio/wav"></audio>', unsafe_allow_html=True)
+                                tocar_alerta(AUDIO_BEEP_B64, volume_som)
                         
                 else:
                     st.error("Erro ao conectar com a API do Polymarket.")
