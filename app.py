@@ -274,7 +274,7 @@ with col_estrategia:
                 with st.spinner("Buscando mercados ativos..."):
                     markets = buscar_mercado_polymarket(busca_api)
                     if markets:
-                        st.success(f"Encontrados {len(markets)} mercados ativos:")
+                        st.success(f"Encontrados {len(markets)} mercados:")
                         for i, m in enumerate(markets):
                             status = "❌ Encerrado" if m.get("closed") else "✅ Ativo"
                             link = f"https://polymarket.com/market/{m['slug']}" if m.get("slug") else polymarket_url
@@ -294,7 +294,7 @@ with col_estrategia:
                                     st.session_state["importar_mercado"] = m
                                     st.rerun()
                     else:
-                        st.warning("⚠️ Jogo não encontrado ou mercado fechado no momento.")
+                        st.warning("⚠️ Jogo não encontrado na API. Use o link abaixo para buscar no site.")
     
     # Verifica se ha um mercado para importar
     if "importar_mercado" in st.session_state:
