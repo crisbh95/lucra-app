@@ -394,73 +394,49 @@ with col_estrategia:
 st.markdown("---")
 st.header("🔎 4 Cenários")
 
-c1, c2, c3, c4 = st.columns(4)
+# Funcao para exibir os 4 cenarios
+def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, odd_emp, odd_zeb, odd_seg):
+    # 1. Calcula o Investimento Total Real
+    total_investido = stake_fav + stake_emp + stake_zeb + stake_seg
+    
+    # 2. Calcula o retorno bruto de cada cenario
+    retorno_fav = stake_fav * odd_fav
+    retorno_emp = stake_emp * odd_emp
+    retorno_zeb = stake_zeb * odd_zeb
+    retorno_seg = stake_seg * odd_seg
+    
+    # 3. Calcula o LUCRO REAL (Retorno - Tudo que gastou)
+    lucro_fav = retorno_fav - total_investido
+    lucro_emp = retorno_emp - total_investido
+    lucro_zeb = retorno_zeb - total_investido
+    lucro_seg = retorno_seg - total_investido
 
-# Custo total de todas as apostas
-custo_total = stake_fav + stake_empate + stake_zebra + valor_seguro
+    # 4. Criar os cards na tela (Streamlit)
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("🏆 " + nome_fav, f"$ {lucro_fav:.2f}", delta=f"{((lucro_fav/total_investido)*100):.1f}%")
+        
+    with col2:
+        # Se a fórmula de Break Even estiver certa, aqui deve aparecer $ 0.00
+        st.metric("⚖️ " + nome_empate, f"$ {lucro_emp:.2f}", delta=f"{((lucro_emp/total_investido)*100):.1f}%")
+        
+    with col3:
+        st.metric("🏅 " + nome_zebra, f"$ {lucro_zeb:.2f}", delta=f"{((lucro_zeb/total_investido)*100):.1f}%")
+        
+    with col4:
+        # Aqui o erro do $-165 vai sumir
+        st.metric("⚽ Over 1.5", f"$ {lucro_seg:.2f}", delta=f"{((lucro_seg/total_investido)*100):.1f}%")
 
-# Lucro do seguro
-lucro_seguro = valor_seguro * odd_over
+    st.write(f"**Total Investido na Operação: $ {total_investido:.2f}**")
+    
+    return lucro_fav, lucro_emp, lucro_zeb, lucro_seg, total_investido
 
-# 1. Fav Ganha (não soma seguro - favorito geralmente não tem muitos gols)
-lucro_1 = (stake_fav * odd_fav) - custo_total
-roi_1 = (lucro_1 / custo_total) * 100 if custo_total > 0 else 0
-cor_1 = "success-text" if lucro_1 >= 0 else "warning-text"
-
-with c1:
-    st.markdown(f"""
-    <div class="card">
-        <h3>🏆 {nome_fav}</h3>
-        <div class="metric-value {cor_1}">${lucro_1:,.2f}</div>
-        <div class="roi-text">ROI: {roi_1:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# 2. Empate + Seguro
-lucro_2 = (stake_empate * odd_empate) + lucro_seguro - custo_total
-roi_2 = (lucro_2 / custo_total) * 100 if custo_total > 0 else 0
-cor_2 = "success-text" if lucro_2 >= 0 else "warning-text"
-
-with c2:
-    st.markdown(f"""
-    <div class="card">
-        <h3>⚖️ {nome_empate}</h3>
-        <div class="metric-value {cor_2}">${lucro_2:,.2f}</div>
-        <div class="roi-text">ROI: {roi_2:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# 3. Zebra + Seguro
-lucro_3 = (stake_zebra * odd_zebra) + lucro_seguro - custo_total
-roi_3 = (lucro_3 / custo_total) * 100 if custo_total > 0 else 0
-cor_3 = "success-text" if lucro_3 >= 0 else "warning-text"
-
-with c3:
-    st.markdown(f"""
-    <div class="card">
-        <h3>🏅 {nome_zebra}</h3>
-        <div class="metric-value {cor_3}">${lucro_3:,.2f}</div>
-        <div class="roi-text">ROI: {roi_3:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# 4. Over 1.5 - Apenas Seguro
-# Lucro = Retorno do seguro - Total Investido
-lucro_4 = lucro_seguro - custo_total
-roi_4 = (lucro_4 / custo_total) * 100 if custo_total > 0 else 0
-cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
-
-with c4:
-    st.markdown(f"""
-    <div class="card">
-        <h3>⚽ Over 1.5</h3>
-        <div class="metric-label">Apenas Seguro</div>
-        <div class="metric-value {cor_4}">${lucro_4:,.2f}</div>
-        <div class="roi-text">ROI: {roi_4:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.caption(f"Total Investido: ${custo_total:,.2f}")
+# Chama a funcao
+lucro_1, lucro_2, lucro_3, lucro_4, custo_total = exibir_quatro_cenarios(
+    stake_fav, stake_empate, stake_zebra, valor_seguro, 
+    odd_fav, odd_empate, odd_zebra, odd_over
+)
 
 # --- VERIFICACAO DE VIABILIDADE ---
 # Verifica se algum cenario esta negativo
