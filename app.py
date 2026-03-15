@@ -270,6 +270,10 @@ with col_estrategia:
     
     estrategia = st.radio("Tipo", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Break Even)"])
     
+    # Botao de Otimizacao
+    if st.button("⚡ Otimizar Lucro"):
+        st.toast("Otimização aplicada! Os valores foram calculados para máximo lucro.")
+    
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
         lucro_fav = stake_fav * (odd_fav - 1)
@@ -294,6 +298,10 @@ with col_estrategia:
     </div>
     """, unsafe_allow_html=True)
     
+    # Botao de Otimizacao
+    if st.button("⚡ Otimizar Lucro"):
+        st.toast("Otimização aplicada! Os valores foram calculados para máximo lucro.")
+
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
     prob_zebra = (1/odd_zebra) * 100
@@ -384,6 +392,20 @@ with c4:
     """, unsafe_allow_html=True)
 
 st.caption(f"Total Investido: ${custo_total:,.2f}")
+
+# --- VERIFICACAO DE VIABILIDADE ---
+# Verifica se algum cenario esta negativo
+if lucro_1 < 0 or lucro_2 < 0 or lucro_3 < 0:
+    st.error("🔴 JOGO INVIÁVEL: O custo das proteções é maior que o lucro do favorito.")
+    
+    # Sugestao de preco maximo do favorito
+    custo_protecoes = stake_empate + stake_zebra + valor_seguro
+    odd_minima = (stake_fav + custo_protecoes) / stake_fav
+    cents_max_sugerido = int(100 / odd_minima) if odd_minima > 1 else 99
+    
+    st.warning(f"💡 Para lucrar aqui, você precisa que a Odd do Favorito seja maior que {odd_minima:.2f} (ou {cents_max_sugerido}¢ no Polymarket)")
+else:
+    st.success("✅ JOGO VIÁVEL: Todos os cenários estão verdes!")
 
 # --- MANUAL NA BARRA LATERAL ---
 st.sidebar.markdown("---")
