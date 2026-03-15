@@ -208,6 +208,7 @@ with col_inputs:
     st.markdown("### 🛡️ Seguro Gols")
     ativar_seguro = st.checkbox("Ativar Seguro de Gols", value=True)
     
+    modo_seguro = "Modo Casa Brasileira" # Default in case it is deactivated
     if ativar_seguro:
         modo_seguro = st.radio("Modo Seguro:", ["Modo Casa Brasileira", "Centavos (Polymarket)"], horizontal=True, key="modo_seguro")
         
