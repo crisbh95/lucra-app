@@ -43,33 +43,43 @@ limite_max = banca_total * (risco_pct / 100)
 st.sidebar.markdown(f"**Limite:** ${limite_max:,.2f}")
 
 # --- FLUXO PRINCIPAL ---
-st.header("⚽ Configuração da Aposta")
+st.header("⚽ Jogo: Favorito vs Zebra")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### 1. Favorito")
-    nome_fav = st.text_input("Nome", "Flamengo")
-    odd_fav = st.number_input("Odd", min_value=1.01, value=1.50)
-    stake_fav = st.number_input("Stake ($)", min_value=1.0, value=60.0)
+    st.markdown("### 1. Favorito (Seu Palpite)")
+    nome_fav = st.text_input("Time Favorito", "Flamengo")
+    odd_fav = st.number_input(f"Odd {nome_fav}", min_value=1.01, value=1.50)
+    valor_principal = st.number_input(f"Quanto apostar no {nome_fav}? ($)", min_value=1.0, value=60.0)
 
 with col2:
-    st.markdown("### 2. Proteção")
-    nome_prot = st.text_input("Proteger Contra", "Empate/Derrota")
-    odd_prot = st.number_input("Odd Proteção", min_value=1.01, value=4.00)
+    st.markdown("### 2. Zebra (Proteção)")
+    nome_zebra = st.text_input("Time Zebra", "Criciúma")
+    odd_zebra = st.number_input(f"Odd {nome_zebra}", min_value=1.01, value=8.00)
     
-    tipo_hedge = st.radio("Estratégia", ["💸 Lucro Máximo (Green Up)", "🛡️ Zerar Prejuízo (Break Even)"])
+    tipo_cobertura = st.radio("Estratégia de Cobertura", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Zerar Prejuízo)"])
     
-    # Lógica de Hedge
-    if "Green Up" in tipo_hedge:
-        stake_prot = (stake_fav * (odd_fav - 1)) / (odd_prot - 1) if (odd_prot - 1) > 0 else 0
+    # Lógica de Cobertura
+    # Green Up: Lucro Fav = Lucro Zebra
+    # Lucro Fav = valor_principal * (odd_fav - 1)
+    # Lucro Zebra = valor_zebra * (odd_zebra - 1)
+    # valor_zebra = (valor_principal * (odd_fav - 1)) / (odd_zebra - 1)
+    
+    # Cover Cost (Break Even): Retorno Zebra >= Investimento Total (Fav + Zebra)
+    # valor_zebra * odd_zebra >= valor_principal + valor_zebra
+    # valor_zebra * (odd_zebra - 1) >= valor_principal
+    # valor_zebra = valor_principal / (odd_zebra - 1)
+    
+    if "Green Up" in tipo_cobertura:
+        valor_zebra = (valor_principal * (odd_fav - 1)) / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
     else:
-        stake_prot = (stake_fav * odd_fav) / odd_prot
+        valor_zebra = valor_principal / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
 
     st.markdown(f"""
     <div class="card" style="border-color: #00D4FF;">
-        <div class="metric-label">VALOR DA PROTEÇÃO</div>
-        <div class="metric-value">${stake_prot:,.2f}</div>
+        <div class="metric-label">VALOR NA ZEBRA ({nome_zebra})</div>
+        <div class="metric-value">${valor_zebra:,.2f}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -78,8 +88,8 @@ st.markdown("---")
 col_mer1, col_mer2 = st.columns(2)
 
 prob_fav = (1/odd_fav) * 100
-prob_prot = (1/odd_prot) * 100
-soma_probs = prob_fav + prob_prot
+prob_zebra = (1/odd_zebra) * 100
+soma_probs = prob_fav + prob_zebra
 
 with col_mer1:
     if soma_probs > 98:
@@ -88,7 +98,7 @@ with col_mer1:
         st.markdown(f"""<div class="overround-alert" style="background-color: #1C3E2C; color: #00F090;">✅ Mercado Sólido: {soma_probs:.1f}%</div>""", unsafe_allow_html=True)
 
 # --- VALIDAÇÃO RISCO ---
-total_apostado = stake_fav + stake_prot
+total_apostado = valor_principal + valor_zebra
 margem = limite_max - total_apostado
 
 with col_mer2:
@@ -101,24 +111,19 @@ with col_mer2:
 st.markdown("---")
 st.header("🛡️ Seguro de Gols (Over 1.5)")
 
-# Calculo do Lucro Potencial do Fav (Green Up)
-lucro_bruto_fav = (stake_fav * odd_fav) - total_apostado
-# Se o hedge comeu tudo, o lucro pode ser 0 ou menor. Vamos considerar 0 se não greenup.
+lucro_bruto_fav = (valor_principal * odd_fav) - valor_principal
 if lucro_bruto_fav < 0: lucro_bruto_fav = 0
 
 col_s1, col_s2 = st.columns(2)
 with col_s1:
     st.markdown(f"Lucro potencial do favorito: **${lucro_bruto_fav:,.2f}**")
     pct_seguro = st.slider("% do Lucro para Seguro", 0, 100, 10)
-    
-    # Cálculo Dinâmico: Baseado no Lucro, não na Stake
-    stake_seguro = lucro_bruto_fav * (pct_seguro / 100)
-    
-    st.metric("Valor do Seguro", f"${stake_seguro:,.2f}")
+    valor_seguro = lucro_bruto_fav * (pct_seguro / 100)
+    st.metric("Valor do Seguro", f"${valor_seguro:,.2f}")
     
 with col_s2:
     odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
-    retorno_seguro = stake_seguro * odd_over
+    retorno_seguro = valor_seguro * odd_over
     st.info(f"Retorno potencial: ${retorno_seguro:,.2f}")
     st.caption("Este valor sai do seu lucro.")
 
@@ -128,9 +133,11 @@ st.header("🔎 Resultado Final")
 c1, c2 = st.columns(2)
 
 # Cenário 1: Fav Ganha
-retorno_fav = stake_fav * odd_fav
-lucro_fav = (retorno_fav + retorno_seguro) - (total_apostado + stake_seguro)
-roi_fav = (lucro_fav / (total_apostado + stake_seguro)) * 100 if (total_apostado + stake_seguro) > 0 else 0
+retorno_fav = valor_principal * odd_fav
+# Neste cenário, a Zebra perde (-valor_zebra)
+# O Seguro Over pode ganhar ou perder. Vamos assumir que SIM, houve gol.
+lucro_fav = (retorno_fav + retorno_seguro) - (total_apostado + valor_seguro)
+roi_fav = (lucro_fav / (total_apostado + valor_seguro)) * 100 if (total_apostado + valor_seguro) > 0 else 0
 cor_fav = "success-text" if lucro_fav >= 0 else "warning-text"
 
 with c1:
@@ -143,21 +150,23 @@ with c1:
     </div>
     """, unsafe_allow_html=True)
 
-# Cenário 2: Proteção Ganha
-# Cenário 2 = Empate/Derrota. Seguro Over 1.5 Gols geralmente PERDE nesse cenário (0-0, 1-0)
-# Vamos considerar que o Seguro Perdeu (-stake_seguro)
-lucro_prot = (stake_prot * odd_prot) - (stake_fav + stake_prot) - stake_seguro
-roi_prot = (lucro_prot / (total_apostado + stake_seguro)) * 100 if (total_apostado + stake_seguro) > 0 else 0
-cor_prot = "success-text" if lucro_prot >= 0 else "warning-text"
+# Cenário 2: Zebra Ganha
+retorno_zebra = valor_zebra * odd_zebra
+# Neste cenário, o Fav perde (-valor_principal)
+# Seguro Over: Se Zebra venceu (ex: 0-1), provavelmente NÃO teve Over 1.5 (menos de 2 golos).
+# Custo do seguro perdido.
+lucro_zebra = (retorno_zebra - valor_zebra - valor_principal) - valor_seguro
+roi_zebra = (lucro_zebra / (total_apostado + valor_seguro)) * 100 if (total_apostado + valor_seguro) > 0 else 0
+cor_zebra = "success-text" if lucro_zebra >= 0 else "warning-text"
 
 with c2:
     st.markdown(f"""
     <div class="card">
-        <h3>🛡️ {nome_prot}</h3>
-        <div class="metric-value {cor_prot}">${lucro_prot:,.2f}</div>
+        <h3>🏅 {nome_zebra} VENCE (ZEBRA)</h3>
+        <div class="metric-value {cor_zebra}">${lucro_zebra:,.2f}</div>
         <div class="metric-label">LUCRO LÍQUIDO</div>
-        <div class="roi-text">ROI: {roi_prot:.1f}%</div>
+        <div class="roi-text">ROI: {roi_zebra:.1f}%</div>
     </div>
     """, unsafe_allow_html=True)
 
-st.caption(f"💡 Total investido (com seguro): ${total_apostado + stake_seguro:,.2f}")
+st.caption(f"💡 Total investido (com seguro): ${total_apostado + valor_seguro:,.2f}")
