@@ -235,8 +235,13 @@ with col_inputs:
             stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
             stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
         else:
-            stake_empate_temp = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-            stake_zebra_temp = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+            denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
+            if denominador_temp > 0:
+                stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
+                stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
+            else:
+                stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+                stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         
         custo_principal = stake_fav + stake_empate_temp + stake_zebra_temp
         limite_seguro = custo_principal * 0.05
@@ -252,8 +257,13 @@ with col_inputs:
             stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
             stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
         else:
-            stake_empate_temp = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-            stake_zebra_temp = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+            denominador_temp = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
+            if denominador_temp > 0:
+                stake_empate_temp = (stake_fav * odd_zebra) / denominador_temp
+                stake_zebra_temp = (stake_fav * odd_empate) / denominador_temp
+            else:
+                stake_empate_temp = stake_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+                stake_zebra_temp = stake_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         
         custo_protecoes = stake_empate_temp + stake_zebra_temp + valor_seguro
         custo_total_estimado = stake_fav + custo_protecoes
@@ -334,10 +344,16 @@ with col_estrategia:
         stake_empate = lucro_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
         stake_zebra = lucro_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
     else:
-        # Break Even: O lucro da proteção cobre o custo do favorito + seguro
-        # Fórmula: stake * (odd - 1.0) = stake_fav + valor_seguro
-        stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
-        stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
+        # Break Even com Cobertura Cruzada (Mútua)
+        # Para o lucro ser EXATAMENTE $0.00, o Empate precisa cobrir a aposta da Zebra, e vice-versa.
+        denominador = (odd_empate - 1.0) * (odd_zebra - 1.0) - 1.0
+        if denominador > 0:
+            stake_empate = ((stake_fav + valor_seguro) * odd_zebra) / denominador
+            stake_zebra = ((stake_fav + valor_seguro) * odd_empate) / denominador
+        else:
+            # Fallback (Matematicamente impossível cobrir ambos simultaneamente zerados)
+            stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+            stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
         st.success("✅ Proteção Matemática Ativada: Empate e Zebra agora cobrem 100% dos custos.")
 
     st.markdown(f"""
