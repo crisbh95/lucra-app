@@ -165,6 +165,7 @@ banca_total = st.sidebar.number_input("Banca Total ($)", min_value=0.0, value=10
 risco_pct = st.sidebar.slider("% Risco por Jogo", 1, 20, 5)
 limite_max = banca_total * (risco_pct / 100)
 st.sidebar.markdown(f"**Limite:** ${limite_max:,.2f}")
+banca_maxima = st.sidebar.number_input("Banca Máxima por Jogo ($)", min_value=0.0, value=limite_max, step=5.0)
 
 # --- FLUXO PRINCIPAL ---
 st.header("⚽ Jogo Completo")
@@ -359,15 +360,16 @@ with col_estrategia:
             if (1 - preco_fav) <= 0:
                 st.error("❌ Matematicamente impossível lucrar em todos os cenários com estes preços.")
             else:
-                # Fórmula matemática para garantir que o prêmio do favorito 
-                # cubra o custo e sobre 10% de lucro sobre o investimento total
                 # Stake = (Custo Proteções * 1.10) / (1 - preco_fav)
                 stake_minima = (custo_total_protecoes * 1.10) / (1 - preco_fav)
                 
                 # Atualiza o valor no session_state para persistir
                 st.session_state["stake_fav"] = stake_minima
                 
-                st.success(f"💰 Stake atualizada para: **${stake_minima:.2f}**")
+                if stake_minima > banca_maxima:
+                    st.warning("⚠️ Atenção Cris: Esta operação exige mais do que o seu limite definido. Reduza o seguro ou procure uma Odd maior.")
+                else:
+                    st.success(f"💰 Stake atualizada para: **${stake_minima:.2f}**")
                 st.rerun()
     
     prob_fav = (1/odd_fav) * 100
