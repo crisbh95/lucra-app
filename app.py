@@ -113,7 +113,7 @@ st.set_page_config(page_title="Lucra+ | Estratégia Completa", page_icon="🎯",
 
 # Inicializa session_state para stake
 if "stake_fav" not in st.session_state:
-    st.session_state["stake_fav"] = 60.0
+    st.session_state["stake_fav"] = 10.00
 
 # --- CSS Custom ---
 st.markdown("""
@@ -176,7 +176,7 @@ with col_inputs:
     st.markdown("### 📝 Inputs")
     nome_fav = st.text_input("Favorito", "Flamengo")
     odd_fav, is_poly_fav, cents_fav = input_odd_or_cents(nome_fav, default_odd=1.50, key_prefix="fav")
-    stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=st.session_state.get("stake_fav", 60.0))
+    stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=st.session_state.get("stake_fav", 10.00), step=5.0, format="%.2f")
     
     nome_empate = st.text_input("Empate", "Empate")
     odd_empate, is_poly_empate, cents_empate = input_odd_or_cents(nome_empate, default_odd=4.00, key_prefix="emp")
@@ -215,7 +215,7 @@ with col_inputs:
     else:
         odd_over = st.number_input("Odd Over 1.5", min_value=1.01, value=1.30, format="%.2f", key="odd_over")
     
-    valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.0, key="valor_seguro")
+    valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.00, step=1.0, format="%.2f", key="valor_seguro")
     
     # Estrategia padrao para calculos temporarios
     estrategia_calc = "💸 Lucro Máximo (Green Up)"
