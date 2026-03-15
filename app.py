@@ -126,9 +126,12 @@ st.header("🔎 4 Cenários")
 
 c1, c2, c3, c4 = st.columns(4)
 
+# Custo total de todas as apostas
+custo_total = stake_fav + stake_empate + stake_zebra + valor_seguro
+
 # 1. Fav Ganha
-lucro_1 = (stake_fav * odd_fav) - total_apostado - valor_seguro
-roi_1 = (lucro_1 / total_apostado) * 100 if total_apostado > 0 else 0
+lucro_1 = (stake_fav * odd_fav) - custo_total
+roi_1 = (lucro_1 / custo_total) * 100 if custo_total > 0 else 0
 cor_1 = "success-text" if lucro_1 >= 0 else "warning-text"
 
 with c1:
@@ -141,8 +144,8 @@ with c1:
     """, unsafe_allow_html=True)
 
 # 2. Empate
-lucro_2 = (stake_empate * odd_empate) - total_apostado - valor_seguro
-roi_2 = (lucro_2 / total_apostado) * 100 if total_apostado > 0 else 0
+lucro_2 = (stake_empate * odd_empate) - custo_total
+roi_2 = (lucro_2 / custo_total) * 100 if custo_total > 0 else 0
 cor_2 = "success-text" if lucro_2 >= 0 else "warning-text"
 
 with c2:
@@ -155,8 +158,8 @@ with c2:
     """, unsafe_allow_html=True)
 
 # 3. Zebra Ganha
-lucro_3 = (stake_zebra * odd_zebra) - total_apostado - valor_seguro
-roi_3 = (lucro_3 / total_apostado) * 100 if total_apostado > 0 else 0
+lucro_3 = (stake_zebra * odd_zebra) - custo_total
+roi_3 = (lucro_3 / custo_total) * 100 if custo_total > 0 else 0
 cor_3 = "success-text" if lucro_3 >= 0 else "warning-text"
 
 with c3:
@@ -169,10 +172,8 @@ with c3:
     """, unsafe_allow_html=True)
 
 # 4. Muitos Gols (Over 1.5) - Seguro Ganha
-# O seguro paga (valor_seguro * odd_over) mas não paga o favorito
-lucro_seguro = (valor_seguro * odd_over) - valor_seguro  # Lucro puro do seguro
-lucro_4 = lucro_seguro - (stake_empate + stake_zebra)  # Ganha seguro, perde coberturas
-roi_4 = (lucro_4 / total_apostado) * 100 if total_apostado > 0 else 0
+lucro_4 = (valor_seguro * odd_over) - custo_total
+roi_4 = (lucro_4 / custo_total) * 100 if custo_total > 0 else 0
 cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
 
 with c4:
@@ -185,4 +186,4 @@ with c4:
     </div>
     """, unsafe_allow_html=True)
 
-st.caption(f"Total Investido: ${total_apostado + valor_seguro:,.2f}")
+st.caption(f"Total Investido: ${custo_total:,.2f}")
