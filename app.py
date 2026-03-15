@@ -21,6 +21,11 @@ st.markdown("""
         border-radius: 10px;
         border: 1px solid #2A3038;
         margin-bottom: 15px;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     h1, h2, h3 { color: #00F090 !important; }
     .metric-value { font-size: 24px; font-weight: bold; color: #00D4FF; }
@@ -45,21 +50,13 @@ st.sidebar.markdown(f"**Limite:** ${limite_max:,.2f}")
 # --- FLUXO PRINCIPAL ---
 st.header("⚽ Jogo Completo")
 
-col1, col2 = st.columns([1, 1])
+col_config, col_seguro = st.columns([1.2, 1])
 
-with col1:
+with col_config:
     st.markdown("### 1. Favorito (Seu Palpite)")
     nome_fav = st.text_input("Time A", "Flamengo")
     odd_fav = st.number_input(f"Odd {nome_fav}", min_value=1.01, value=1.50)
     stake_fav = st.number_input(f"Stake no {nome_fav} ($)", min_value=1.0, value=60.0)
-    
-    # Seguro Gols (definido antes para uso no Break Even)
-    lucro_bruto = (stake_fav * odd_fav) - stake_fav
-    if lucro_bruto < 0: lucro_bruto = 0
-    
-    pct_seguro = st.slider("% Lucro Seguro", 0, 100, 10)
-    valor_seguro = lucro_bruto * (pct_seguro / 100)
-    odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
     
     # Inputs de Cobertura
     nome_empate = st.text_input("Empate (Odd)", "Empate")
@@ -77,7 +74,6 @@ with col1:
         stake_zebra = lucro_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
     else:
         # Break Even: Cálculo iterativo para coverir o investimento total (Fav + Emp + Zeb + Seg)
-        # Iteração 1: Estimar com stake_empate e stake_zebra = 0
         stake_empate = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         stake_zebra = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
         
@@ -97,7 +93,19 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
-with col2:
+with col_seguro:
+    st.markdown("### 🛡️ Seguro Gols")
+    
+    # Seguro Gols (definido antes para uso no Break Even)
+    lucro_bruto = (stake_fav * odd_fav) - stake_fav
+    if lucro_bruto < 0: lucro_bruto = 0
+    
+    pct_seguro = st.slider("% Lucro Seguro", 0, 100, 10)
+    valor_seguro = lucro_bruto * (pct_seguro / 100)
+    odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
+    
+    st.metric("Valor Seguro", f"${valor_seguro:,.2f}", f"Ret: ${valor_seguro * odd_over:,.2f}")
+    
     # Análise de Mercado
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
@@ -116,8 +124,6 @@ with col2:
         st.error(f"⚠️ Excedeu limite em ${abs(margem):,.2f}")
     else:
         st.success(f"✅ Saldo: ${margem:,.2f}")
-
-    st.metric("Valor Seguro", f"${valor_seguro:,.2f}", f"Ret: ${valor_seguro * odd_over:,.2f}")
 
 # --- CENÁRIOS ---
 st.markdown("---")
