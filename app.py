@@ -534,19 +534,19 @@ if st.session_state["mostrar_comprovante"]:
     shares_zeb = calc_shares(stake_zebra, odd_zebra)
     
     st.info(f"📋 **Resumo para Polymarket:**")
-    st.markdown(f"Compre **$ {stake_fav:,.2f}** de YES no **{nome_fav}**")
-    st.markdown(f"Compre **$ {stake_empate:,.2f}** de YES no **{nome_empate}**")
-    st.markdown(f"Compre **$ {stake_zebra:,.2f}** de YES no **{nome_zebra}**")
+    st.markdown(f"Compre **{stake_fav:,.2f}** de YES no **{nome_fav}**")
+    st.markdown(f"Compre **{stake_empate:,.2f}** de YES no **{nome_empate}**")
+    st.markdown(f"Compre **{stake_zebra:,.2f}** de YES no **{nome_zebra}**")
     
     texto_comprovante = f"📋 Ordem de Execução - Lucra+\n==============================\n"
-    texto_comprovante += f"Compre $ {stake_fav:,.2f} de YES no {nome_fav}\n"
-    texto_comprovante += f"Compre $ {stake_empate:,.2f} de YES no {nome_empate}\n"
-    texto_comprovante += f"Compre $ {stake_zebra:,.2f} de YES no {nome_zebra}\n"
+    texto_comprovante += f"Compre {stake_fav:,.2f} de YES no {nome_fav}\n"
+    texto_comprovante += f"Compre {stake_empate:,.2f} de YES no {nome_empate}\n"
+    texto_comprovante += f"Compre {stake_zebra:,.2f} de YES no {nome_zebra}\n"
     
     if ativar_seguro and valor_seguro > 0:
         shares_seg = calc_shares(valor_seguro, odd_over)
-        st.markdown(f"Compre **$ {valor_seguro:,.2f}** de YES no **Over 1.5**")
-        texto_comprovante += f"Compre $ {valor_seguro:,.2f} de YES no Over 1.5\n"
+        st.markdown(f"Compre **{valor_seguro:,.2f}** de YES no **Over 1.5**")
+        texto_comprovante += f"Compre {valor_seguro:,.2f} de YES no Over 1.5\n"
         
     texto_comprovante += "==============================\nBoa sorte!"
     
