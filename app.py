@@ -272,7 +272,47 @@ with col_estrategia:
     
     # Botao de Otimizacao
     if st.button("⚡ Otimizar Lucro"):
-        st.toast("Otimização aplicada! Os valores foram calculados para máximo lucro.")
+        # Calcula as probablidades
+        prob_fav_calc = (1/odd_fav) * 100
+        prob_empate_calc = (1/odd_empate) * 100
+        prob_zebra_calc = (1/odd_zebra) * 100
+        soma_probs_calc = prob_fav_calc + prob_empate_calc + prob_zebra_calc
+        
+        if soma_probs_calc > 105:
+            st.error("🔴 Custo operacional muito alto. Recomenda-se aguardar as Odds subirem.")
+        else:
+            # Calcula o lucro necessario (10% do investimento)
+            custo_atual = stake_fav + stake_empate + stake_zebra + valor_seguro
+            lucro_desejado = custo_atual * 0.10
+            
+            # Calcula o que o favorito precisa dar de lucro
+            lucro_fav_necessario = stake_empate + stake_zebra + valor_seguro + lucro_desejado
+            
+            # Odd minima para ter 10% de lucro
+            odd_minima_10 = (stake_fav + lucro_fav_necessario) / stake_fav
+            cents_max_10 = int(100 / odd_minima_10) if odd_minima_10 > 1 else 99
+            
+            # Calcula preco maximo para Empate e Zebra
+            # Se o favorito der 10% de lucro, quanto podemos pagar nas protecoes?
+            stake_empate_otimo = stake_fav * (odd_fav - 1) - stake_zebra - valor_seguro + lucro_desejado
+            stake_zebra_otimo = stake_fav * (odd_fav - 1) - stake_empate - valor_seguro + lucro_desejado
+            
+            # Converte para centavos
+            if stake_empate_otimo > 0 and odd_empate > 1:
+                odd_empate_max = 1 + (stake_fav / stake_empate_otimo) if stake_empate_otimo > 0 else 99
+                cents_empate_max = int(100 / odd_empate_max) if odd_empate_max > 1 else 99
+            else:
+                cents_empate_max = 1
+                
+            if stake_zebra_otimo > 0 and odd_zebra > 1:
+                odd_zebra_max = 1 + (stake_fav / stake_zebra_otimo) if stake_zebra_otimo > 0 else 99
+                cents_zebra_max = int(100 / odd_zebra_max) if odd_zebra_max > 1 else 99
+            else:
+                cents_zebra_max = 1
+            
+            st.success(f"✅ Otimização aplicada!")
+            st.info(f"📊 Meta: Para ter 10% de lucro no {nome_fav}, você precisa de Odd mínima {odd_minima_10:.2f} ({cents_max_10}¢)")
+            st.info(f"💡 Preço máximo sugerido: Empate {cents_empate_max}¢ | Zebra {cents_zebra_max}¢")
     
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
