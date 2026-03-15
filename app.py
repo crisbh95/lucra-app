@@ -339,26 +339,18 @@ with col_estrategia:
     """, unsafe_allow_html=True)
     
     # Botao de Stake Minima
-    if st.button("💰 Calcular Stake Mínima"):
-        # Para ter lucro em todos os cenarios no modo Break Even:
-        # Lucro do favorito precisa cobrir: stake_empate + stake_zebra + valor_seguro
-        # stake_fav * (odd_fav - 1) >= stake_empate + stake_zebra + valor_seguro
-        # stake_fav >= (stake_empate + stake_zebra + valor_seguro) / (odd_fav - 1)
-        
-        # Calcula stake minima teorica
+    if st.button("🚀 Calcular Stake Mínima"):
+        # Custo das proteções atuais
         custo_protecoes = stake_empate + stake_zebra + valor_seguro
-        if (odd_fav - 1) > 0:
-            stake_minima_teorica = custo_protecoes / (odd_fav - 1)
-        else:
-            stake_minima_teorica = 0
         
-        st.info(f"💡 {nome_fav}, para este jogo ser lucrativo em todos os cenários, sua Stake deve ser de no mínimo ${stake_minima_teorica:.2f}")
+        # Preço do favorito em decimal (ex: 52 centavos -> 0.52)
+        preco_fav_decimal = cents_fav / 100
         
-        if stake_fav < stake_minima_teorica:
-            diferenca = stake_minima_teorica - stake_fav
-            st.warning(f"⚠️ Stake atual insuficiente. Aumente em ${diferenca:.2f} para ficar 100% verde.")
-        else:
-            st.success(f"✅ Stake atual suficiente! Você está bem posicionado.")
+        # Fórmula: Stake necessária para o prêmio cobrir todo o custo e ainda sobrar 5% de lucro
+        stake_necessaria = (custo_protecoes * 1.05) / (1 - preco_fav_decimal)
+        
+        st.success(f"✅ Cris, para ficar tudo verde, sua Stake no Favorito deve ser: **${stake_necessaria:.2f}**")
+        st.info(f"Com esse valor, o prêmio do favorito paga todas as proteções e sobra lucro!")
     
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
