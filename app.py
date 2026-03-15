@@ -69,6 +69,10 @@ st.markdown("""
 
 st.title("🎯 Lucra+ | Estratégia Completa (3 Caminhos)")
 
+# Botao para limpar dados
+if st.button("🗑️ Limpar Dados"):
+    st.rerun()
+
 st.info("💡 **Dica Polymarket:** No campo Amount do Polymarket, você digita o valor em Dólares (Stake). O site calcula sozinho quantas 'Shares' você compra.")
 
 # --- BARRA LATERAL ---
@@ -125,6 +129,48 @@ with col_inputs:
         odd_over = st.number_input("Odd Over 1.5", min_value=1.01, value=1.30, format="%.2f", key="odd_over")
     
     valor_seguro = st.number_input("Valor da Aposta no Seguro ($)", min_value=0.0, value=5.0, key="valor_seguro")
+    
+    # Sugestao automatica do seguro (maximo 5% do investimento total)
+    if is_poly_mode:
+        # Primeiro calcula as stakers temporariamente para ter o custo total
+        if "Green Up" in estrategia:
+            lucro_fav_temp = stake_fav * (odd_fav - 1)
+            stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
+            stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        else:
+            stake_empate_temp = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
+            stake_zebra_temp = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        
+        custo_principal = stake_fav + stake_empate_temp + stake_zebra_temp
+        limite_seguro = custo_principal * 0.05
+        
+        if valor_seguro > limite_seguro:
+            st.warning(f"⚠️ Sugestão: O seguro ideal não deve ultrapassar 5% do investimento (${limite_seguro:.2f})")
+    
+    # Ponto de Equilibrio - preco maximo em centavos para ter lucro no favorito
+    if is_poly_fav:
+        # Calcula o custo das protecoes para saber o ponto de equilibrio
+        if "Green Up" in estrategia:
+            lucro_fav_temp = stake_fav * (odd_fav - 1)
+            stake_empate_temp = lucro_fav_temp / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
+            stake_zebra_temp = lucro_fav_temp / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        else:
+            stake_empate_temp = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
+            stake_zebra_temp = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        
+        custo_protecoes = stake_empate_temp + stake_zebra_temp + valor_seguro
+        custo_total_estimado = stake_fav + custo_protecoes
+        
+        # Lucro-minimo = custo total - stake_fav (para cobrir todas as protecoes)
+        # odd_fav * stake_fav >= custo_total -> stake_fav >= custo_total / odd_fav
+        # preco_max = 100 / odd_minima_para_lucro
+        
+        odd_min_para_lucro = custo_total_estimado / stake_fav
+        if odd_min_para_lucro > 1:
+            cents_max = int(100 / odd_min_para_lucro)
+            st.info(f"🎯 Ponto de Equilíbrio: Para cobrir as proteções (${custo_protecoes:.2f}), o favorito precisa estar no máximo em {cents_max}¢ (Odd {odd_min_para_lucro:.2f})")
+        else:
+            st.success("✅ Com este favorito forte, você já tem lucro garantido!")
 
 with col_estrategia:
     st.markdown("### 🎯 Estratégia")
@@ -247,36 +293,33 @@ st.caption(f"Total Investido: ${custo_total:,.2f}")
 
 # --- MANUAL NA BARRA LATERAL ---
 st.sidebar.markdown("---")
-st.sidebar.header("📖 Manual de Operação")
+with st.sidebar.expander("📖 Manual de Operação", expanded=False):
+    # Função auxiliar para exibir o valor correto no manual
+    def get_display_value(mode, stake, odd, is_poly):
+        if is_poly:
+            cents = int(100 / odd)
+            return f"{cents}¢ (Amount: ${stake:,.2f})"
+        else:
+            return f"${stake:,.2f}"
 
-# Função auxiliar para exibir o valor correto no manual
-def get_display_value(mode, stake, odd, is_poly):
-    if is_poly:
-        cents = int(100 / odd)
-        return f"{cents}¢ (Amount: ${stake:,.2f})"
-    else:
-        return f"${stake:,.2f}"
+    st.markdown(f"""
+    **1. Escolha o Mercado**
+    Procure por: `{nome_fav} vs {nome_zebra}`.
 
-st.sidebar.markdown(f"""
-**1. Escolha o Mercado**
-Procure por: `{nome_fav} vs {nome_zebra}`.
+    **2. Opção SIM (Favorito)**
+    Se você acha que o {nome_fav} vence:
+    * Escolha: **{"Polymarket (YES)" if is_poly_fav else "Casa (1)" if "1" in nome_fav else "Casa"}**
+    * Digite: **{get_display_value("fav", stake_fav, odd_fav, is_poly_fav)}**
 
-**2. Opção SIM (Favorito)**
-Se você acha que o {nome_fav} vence:
-* Escolha: **{"Polymarket (YES)" if is_poly_fav else "Casa (1)" if "1" in nome_fav else "Casa"}**
-* Digite: **{get_display_value("fav", stake_fav, odd_fav, is_poly_fav)}**
+    **3. Opção NÃO (Proteção)**
+    Para cobrir Empate e Zebra:
+    * Escolha: **{"Polymarket (NO)" if is_poly_empate or is_poly_zebra else "Casa (X ou 2)"}**
+    * Digite Empate: **{get_display_value("emp", stake_empate, odd_empate, is_poly_empate)}**
+    * Digite Zebra: **{get_display_value("zebra", stake_zebra, odd_zebra, is_poly_zebra)}**
+    * *Isso cobre qualquer tropeço do favorito.*
 
-**3. Opção NÃO (Proteção)**
-Para cobrir Empate e Zebra:
-* Escolha: **{"Polymarket (NO)" if is_poly_empate or is_poly_zebra else "Casa (X ou 2)"}**
-* Digite Empate: **{get_display_value("emp", stake_empate, odd_empate, is_poly_empate)}**
-* Digite Zebra: **{get_display_value("zebra", stake_zebra, odd_zebra, is_poly_zebra)}**
-* *Isso cobre qualquer tropeço do favorito.*
-
-**4. Seguro de Gols**
-Procure o mercado: `Total Goals Over 1.5`
-* Escolha: **{"Polymarket (YES)" if modo_seguro == "Centavos (Polymarket)" else "Casa"}**
-* Digite: **{f"{int(100/odd_over)}¢ (Amount: ${valor_seguro:,.2f})" if modo_seguro == "Centavos (Polymarket)" else f"${valor_seguro:,.2f}"}**
-""")
-
-st.sidebar.info("💡 Dica: O 'NÃO' no favorito substitui as apostas individuais em Empate e Zebra.")
+    **4. Seguro de Gols**
+    Procure o mercado: `Total Goals Over 1.5`
+    * Escolha: **{"Polymarket (YES)" if modo_seguro == "Centavos (Polymarket)" else "Casa"}**
+    * Digite: **{f"{int(100/odd_over)}¢ (Amount: ${valor_seguro:,.2f})" if modo_seguro == "Centavos (Polymarket)" else f"${valor_seguro:,.2f}"}**
+    """)
