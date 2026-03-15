@@ -449,9 +449,9 @@ with c3:
     """, unsafe_allow_html=True)
 
 # 4. Over 1.5 - Apenas Seguro
-# Lucro = Retorno do seguro - (apostas principais: fav + empate + zebra)
-lucro_4 = lucro_seguro - (stake_fav + stake_empate + stake_zebra)
-roi_4 = (lucro_4 / valor_seguro) * 100 if valor_seguro > 0 else 0
+# Lucro = Retorno do seguro - Total Investido
+lucro_4 = lucro_seguro - custo_total
+roi_4 = (lucro_4 / custo_total) * 100 if custo_total > 0 else 0
 cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
 
 with c4:
