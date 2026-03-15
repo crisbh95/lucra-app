@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import requests
 
 def buscar_mercado_polymarket(query):
     try:
@@ -148,7 +149,31 @@ st.markdown("""
     .success-text { color: #00F090; font-weight: bold; }
     .stNumberInput > div > div > input { color: white; background-color: #1E232B; }
     .overround-alert { padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; }
-</style>
+        
+        /* Estilos do Scanner */
+        .scanner-card {
+            background-color: #064E3B; /* Verde muito escuro */
+            border-left: 5px solid #10B981;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .scanner-title {
+            color: #E2E8F0;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .scanner-dados {
+            color: #A7F3D0;
+            font-size: 0.9em;
+        }
+        .scanner-margem {
+            color: #10B981;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+    </style>
 """, unsafe_allow_html=True)
 
 st.title("🎯 Lucra+ | Estratégia Completa (3 Caminhos)")
@@ -169,21 +194,31 @@ st.sidebar.markdown(f"**Limite:** ${limite_max:,.2f}")
 banca_maxima = st.sidebar.number_input("Banca Máxima por Jogo ($)", min_value=0.0, value=limite_max, step=5.0)
 
 # --- FLUXO PRINCIPAL ---
-st.header("⚽ Jogo Completo")
+tab1, tab2 = st.tabs(["📊 Calculadora", "🔍 Scanner Polymarket"])
 
-col_inputs, col_estrategia = st.columns([1, 1])
+with tab1:
+    st.header("⚽ Jogo Completo")
+    
+    col_inputs, col_estrategia = st.columns([1, 1])
 
-with col_inputs:
-    st.markdown("### 📝 Inputs")
-    nome_fav = st.text_input("Favorito", "Flamengo")
-    odd_fav, is_poly_fav, cents_fav = input_odd_or_cents(nome_fav, default_odd=1.50, key_prefix="fav")
-    stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=st.session_state.get("stake_fav", 10.00), step=5.0, format="%.2f")
-    
-    nome_empate = st.text_input("Empate", "Empate")
-    odd_empate, is_poly_empate, cents_empate = input_odd_or_cents(nome_empate, default_odd=4.00, key_prefix="emp")
-    
-    nome_zebra = st.text_input("Zebra", "Criciúma")
-    odd_zebra, is_poly_zebra, cents_zebra = input_odd_or_cents(nome_zebra, default_odd=8.00, key_prefix="zebra")
+    with col_inputs:
+        st.markdown("### 📝 Inputs")
+        nome_fav_def = st.session_state.get("calc_nome_fav", "Flamengo")
+        nome_fav = st.text_input("Favorito", nome_fav_def)
+        
+        odd_fav_def = st.session_state.get("calc_odd_fav", 1.50)
+        odd_fav, is_poly_fav, cents_fav = input_odd_or_cents(nome_fav, default_odd=odd_fav_def, key_prefix="fav")
+        stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=st.session_state.get("stake_fav", 10.00), step=5.0, format="%.2f")
+        
+        nome_emp_def = st.session_state.get("calc_nome_empate", "Empate")
+        nome_empate = st.text_input("Empate", nome_emp_def)
+        odd_emp_def = st.session_state.get("calc_odd_empate", 4.00)
+        odd_empate, is_poly_empate, cents_empate = input_odd_or_cents(nome_empate, default_odd=odd_emp_def, key_prefix="emp")
+        
+        nome_zeb_def = st.session_state.get("calc_nome_zebra", "Criciúma")
+        nome_zebra = st.text_input("Zebra", nome_zeb_def)
+        odd_zeb_def = st.session_state.get("calc_odd_zebra", 8.00)
+        odd_zebra, is_poly_zebra, cents_zebra = input_odd_or_cents(nome_zebra, default_odd=odd_zeb_def, key_prefix="zebra")
     
     # Validacao e sugestao automatica para Polymarket
     is_poly_mode = is_poly_fav or is_poly_empate or is_poly_zebra
@@ -547,34 +582,22 @@ if st.session_state["mostrar_comprovante"]:
         shares_seg = calc_shares(valor_seguro, odd_over)
         st.markdown(f"Compre **{valor_seguro:,.2f}** de YES no **Over 1.5**")
         texto_comprovante += f"Compre {valor_seguro:,.2f} de YES no Over 1.5\n"
+    # --- VERIFICACAO DE VIABILIDADE ---
+    if "Maximizar" in estrategia and lucro_1 <= 0.00:
+        st.warning("⚠️ Jogo Inviável: Proteções muito caras para esta Odd")
+    
+    # Verifica se algum cenario esta negativo
+    if lucro_1 < 0 or lucro_2 < 0 or lucro_3 < 0:
+        st.error("🔴 JOGO INVIÁVEL: O custo das proteções é maior que o lucro do favorito.")
         
-    texto_comprovante += "==============================\nBoa sorte!"
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.download_button(
-        label="💾 Baixar Ordem (TXT)",
-        data=texto_comprovante,
-        file_name="ordem_execucao_lucra.txt",
-        mime="text/plain",
-        use_container_width=True
-    )
-
-# --- VERIFICACAO DE VIABILIDADE ---
-if "Maximizar" in estrategia and lucro_1 <= 0.00:
-    st.warning("⚠️ Jogo Inviável: Proteções muito caras para esta Odd")
-
-# Verifica se algum cenario esta negativo
-if lucro_1 < 0 or lucro_2 < 0 or lucro_3 < 0:
-    st.error("🔴 JOGO INVIÁVEL: O custo das proteções é maior que o lucro do favorito.")
-    
-    # Sugestao de preco maximo do favorito
-    custo_protecoes = stake_empate + stake_zebra + valor_seguro
-    odd_minima = (stake_fav + custo_protecoes) / stake_fav
-    cents_max_sugerido = int(100 / odd_minima) if odd_minima > 1 else 99
-    
-    st.warning(f"💡 Para lucrar aqui, você precisa que a Odd do Favorito seja maior que {odd_minima:.2f} (ou {cents_max_sugerido}¢ no Polymarket)")
-else:
-    st.success("✅ JOGO VIÁVEL: Todos os cenários estão verdes!")
+        # Sugestao de preco maximo do favorito
+        custo_protecoes = stake_empate + stake_zebra + valor_seguro
+        odd_minima = (stake_fav + custo_protecoes) / stake_fav
+        cents_max_sugerido = int(100 / odd_minima) if odd_minima > 1 else 99
+        
+        st.warning(f"💡 Para lucrar aqui, você precisa que a Odd do Favorito seja maior que {odd_minima:.2f} (ou {cents_max_sugerido}¢ no Polymarket)")
+    else:
+        st.success("✅ JOGO VIÁVEL: Todos os cenários estão verdes!")
 
 # --- CHECKLIST DE SEGURANCA ---
 st.sidebar.markdown("---")
@@ -587,6 +610,101 @@ elif lucro_1 < 0:
     st.sidebar.warning("⚠️ AJUSTE NECESSÁRIO: O favorito não cobre as proteções. Aumente a Stake ou mude o jogo.")
 else:
     st.sidebar.success("✅ OPERAÇÃO BLINDADA: Lucro garantido em todos os cenários!")
+
+with tab2:
+    st.header("🔍 Scanner Polymarket (Soccer 1x2)")
+    st.markdown("Este robô vasculha a API live do Polymarket procurando por ineficiências matemáticas onde **Soma das Odds < 100¢**.")
+    
+    if st.button("🔄 Atualizar Scanner", type="primary"):
+        with st.spinner("Conectando aos servidores do Polymarket..."):
+            url = "https://gamma-api.polymarket.com/events?limit=500&active=true&closed=false&tag_slug=soccer"
+            try:
+                res = requests.get(url)
+                if res.status_code == 200:
+                    events = res.json()
+                    encontrados = 0
+                    
+                    for ev in events:
+                        title = ev.get('title', '')
+                        if ' vs ' not in title and ' vs. ' not in title:
+                            continue
+                            
+                        markets = ev.get('markets', [])
+                        if len(markets) != 3:
+                            continue
+                            
+                        # Calcular volume total do Match Winner
+                        volume = sum(float(m.get('volume24hr', 0) or 0) for m in markets)
+                        if volume < 1000:
+                            continue # Ignora mercados sem liquidez
+                            
+                        prices = []
+                        market_titles = []
+                        
+                        for m in markets:
+                            market_titles.append(m.get('question', ''))
+                            op = m.get('outcomePrices', ['0', '0'])
+                            try:
+                                # Geralmente no Gamma o index 0 é o preço de YES
+                                price_yes = float(op[0])
+                                prices.append(price_yes)
+                            except:
+                                pass
+                                
+                        if len(prices) == 3:
+                            soma = sum(prices) * 100
+                            
+                            # Logica para exibir APENAS com borda < 100
+                            if soma < 100:
+                                encontrados += 1
+                                st.markdown(f"""
+                                <div class="scanner-card">
+                                    <div class="scanner-title">🏆 {title}</div>
+                                    <div class="scanner-dados">Volume 24h: <b>$ {volume:,.2f}</b></div>
+                                    <div class="scanner-margem">✅ Margem Ideal: {soma:.2f}¢</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # Convert prices to true odds format (1/prob) for compatibility if needed
+                                # But we'll push cents so it works directly with Polymarket toggle
+                                cents_A = prices[0] * 100
+                                cents_B = prices[1] * 100
+                                cents_C = prices[2] * 100
+                                
+                                # Botao de acao injetando no sess.state
+                                def load_calc(ti, ca, cb, cc, title_txt):
+                                    st.session_state["calc_nome_fav"] = title_txt.split(" vs")[0].strip()
+                                    st.session_state["calc_nome_empate"] = "Empate"
+                                    # Very basic extraction logic
+                                    try:
+                                        zebra_name = title_txt.split("vs ")[1].split("?")[0].strip()
+                                    except:
+                                        zebra_name = title_txt.split("vs. ")[1].split("?")[0].strip()
+                                        
+                                    st.session_state["calc_nome_zebra"] = zebra_name
+                                    
+                                    # Cents to Odds
+                                    st.session_state["calc_odd_fav"] = 100 / ca if ca > 0 else 1.01
+                                    st.session_state["calc_odd_empate"] = 100 / cb if cb > 0 else 1.01
+                                    st.session_state["calc_odd_zebra"] = 100 / cc if cc > 0 else 1.01
+                                    
+                                    st.session_state["modo_fav"] = "Centavos (Polymarket)"
+                                    st.session_state["modo_emp"] = "Centavos (Polymarket)"
+                                    st.session_state["modo_zebra"] = "Centavos (Polymarket)"
+                                    
+                                st.button("⚙️ Carregar na Calculadora", key=f"btn_{ev.get('id')}", 
+                                          on_click=load_calc, args=(ev.get('id'), cents_A, cents_B, cents_C, title))
+                                st.markdown("---")
+                                
+                    if encontrados == 0:
+                        st.info("Nenhuma oportunidade com liquidez encontrada neste exato momento. O mercado se ajustou. Tente daqui a pouco!")
+                    else:
+                        st.success(f"Busca finalizada! {encontrados} oportunidades localizadas.")
+                        
+                else:
+                    st.error("Erro ao conectar com a API do Polymarket.")
+            except Exception as e:
+                st.error(f"Erro na varredura: {e}")
 
 # --- MANUAL NA BARRA LATERAL ---
 st.sidebar.markdown("---")
