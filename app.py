@@ -298,10 +298,6 @@ with col_estrategia:
     </div>
     """, unsafe_allow_html=True)
     
-    # Botao de Otimizacao
-    if st.button("⚡ Otimizar Lucro"):
-        st.toast("Otimização aplicada! Os valores foram calculados para máximo lucro.")
-
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
     prob_zebra = (1/odd_zebra) * 100
