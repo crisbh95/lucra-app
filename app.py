@@ -129,7 +129,10 @@ c1, c2, c3, c4 = st.columns(4)
 # Custo total de todas as apostas
 custo_total = stake_fav + stake_empate + stake_zebra + valor_seguro
 
-# 1. Fav Ganha
+# Lucro do seguro
+lucro_seguro = valor_seguro * odd_over
+
+# 1. Fav Ganha (não soma seguro - favorito geralmente não tem muitos gols)
 lucro_1 = (stake_fav * odd_fav) - custo_total
 roi_1 = (lucro_1 / custo_total) * 100 if custo_total > 0 else 0
 cor_1 = "success-text" if lucro_1 >= 0 else "warning-text"
@@ -143,8 +146,8 @@ with c1:
     </div>
     """, unsafe_allow_html=True)
 
-# 2. Empate
-lucro_2 = (stake_empate * odd_empate) - custo_total
+# 2. Empate + Seguro
+lucro_2 = (stake_empate * odd_empate) + lucro_seguro - custo_total
 roi_2 = (lucro_2 / custo_total) * 100 if custo_total > 0 else 0
 cor_2 = "success-text" if lucro_2 >= 0 else "warning-text"
 
@@ -157,8 +160,8 @@ with c2:
     </div>
     """, unsafe_allow_html=True)
 
-# 3. Zebra Ganha
-lucro_3 = (stake_zebra * odd_zebra) - custo_total
+# 3. Zebra + Seguro
+lucro_3 = (stake_zebra * odd_zebra) + lucro_seguro - custo_total
 roi_3 = (lucro_3 / custo_total) * 100 if custo_total > 0 else 0
 cor_3 = "success-text" if lucro_3 >= 0 else "warning-text"
 
@@ -171,8 +174,8 @@ with c3:
     </div>
     """, unsafe_allow_html=True)
 
-# 4. Muitos Gols (Over 1.5) - Seguro Ganha
-lucro_4 = (valor_seguro * odd_over) - custo_total
+# 4. Over 1.5 - Apenas Seguro
+lucro_4 = lucro_seguro - custo_total
 roi_4 = (lucro_4 / custo_total) * 100 if custo_total > 0 else 0
 cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
 
@@ -180,7 +183,7 @@ with c4:
     st.markdown(f"""
     <div class="card">
         <h3>⚽ Over 1.5</h3>
-        <div class="metric-label">Seguro Ganha</div>
+        <div class="metric-label">Apenas Seguro</div>
         <div class="metric-value {cor_4}">${lucro_4:,.2f}</div>
         <div class="roi-text">ROI: {roi_4:.1f}%</div>
     </div>
