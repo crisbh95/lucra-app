@@ -323,14 +323,14 @@ with col_estrategia:
     
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
-        lucro_fav = stake_fav * (odd_fav - 1)
-        stake_empate = lucro_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-        stake_zebra = lucro_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        lucro_fav = stake_fav * (odd_fav - 1.0)
+        stake_empate = lucro_fav / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+        stake_zebra = lucro_fav / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
     else:
         # Break Even: O lucro da proteção cobre o custo do favorito + seguro
-        # Fórmula: stake * (odd - 1) = stake_fav + valor_seguro
-        stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-        stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        # Fórmula: stake * (odd - 1.0) = stake_fav + valor_seguro
+        stake_empate = (stake_fav + valor_seguro) / (odd_empate - 1.0) if (odd_empate - 1.0) > 0 else 0
+        stake_zebra = (stake_fav + valor_seguro) / (odd_zebra - 1.0) if (odd_zebra - 1.0) > 0 else 0
 
     st.markdown(f"""
     <div class="card" style="border-color: #FF3B30;">
