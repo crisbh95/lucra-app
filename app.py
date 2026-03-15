@@ -326,10 +326,13 @@ with col_estrategia:
         stake_empate = lucro_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         stake_zebra = lucro_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
     else:
-        # Break Even: O lucro do favorito cobre as proteções
+        # Break Even: O lucro do favorito cobre as proteções + seguro
+        # Para Empate: stake_empate * (odd_empate - 1) = lucro_fav + valor_seguro
+        # Para Zebra: stake_zebra * (odd_zebra - 1) = lucro_fav + valor_seguro
         lucro_fav = stake_fav * (odd_fav - 1)
-        stake_empate = (lucro_fav + valor_seguro) / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
-        stake_zebra = (lucro_fav + valor_seguro) / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
+        valor_necessario_cobertura = lucro_fav + valor_seguro
+        stake_empate = valor_necessario_cobertura / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
+        stake_zebra = valor_necessario_cobertura / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
 
     st.markdown(f"""
     <div class="card" style="border-color: #FF3B30;">
