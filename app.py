@@ -314,6 +314,28 @@ with col_estrategia:
             st.info(f"📊 Meta: Para ter 10% de lucro no {nome_fav}, você precisa de Odd mínima {odd_minima_10:.2f} ({cents_max_10}¢)")
             st.info(f"💡 Preço máximo sugerido: Empate {cents_empate_max}¢ | Zebra {cents_zebra_max}¢")
     
+    # Botao de Stake Minima
+    if st.button("💰 Calcular Stake Mínima"):
+        # Para ter lucro em todos os cenarios no modo Break Even:
+        # Lucro do favorito precisa cobrir: stake_empate + stake_zebra + valor_seguro
+        # stake_fav * (odd_fav - 1) >= stake_empate + stake_zebra + valor_seguro
+        # stake_fav >= (stake_empate + stake_zebra + valor_seguro) / (odd_fav - 1)
+        
+        # Calcula stake minima teorica
+        custo_protecoes = stake_empate + stake_zebra + valor_seguro
+        if (odd_fav - 1) > 0:
+            stake_minima_teorica = custo_protecoes / (odd_fav - 1)
+        else:
+            stake_minima_teorica = 0
+        
+        st.info(f"💡 {nome_fav}, para este jogo ser lucrativo em todos os cenários, sua Stake deve ser de no mínimo ${stake_minima_teorica:.2f}")
+        
+        if stake_fav < stake_minima_teorica:
+            diferenca = stake_minima_teorica - stake_fav
+            st.warning(f"⚠️ Stake atual insuficiente. Aumente em ${diferenca:.2f} para ficar 100% verde.")
+        else:
+            st.success(f"✅ Stake atual suficiente! Você está bem posicionado.")
+    
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
         lucro_fav = stake_fav * (odd_fav - 1)
