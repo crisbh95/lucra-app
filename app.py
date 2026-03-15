@@ -30,7 +30,7 @@ def buscar_mercado_polymarket(query):
                     # Procura por times similares no nome
                     if query_lower in question or any(word in question for word in query_lower.split()):
                         # Ignora mercados de política ou antigos
-                        if any(x in question for x in ["2023", "2022", "2021", "winner", "election"]):
+                        if any(x in question for x in ["2025", "2024", "2023", "2022", "winner", "election"]):
                             continue
                             
                         # Busca os precos dos outcomes
