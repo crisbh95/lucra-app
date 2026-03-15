@@ -449,10 +449,10 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
             background-color: #1F2937;
             margin-bottom: 10px;
         }
-        .verde { color: #10B981; }
-        .laranja { color: #F97316; }
-        .vermelho { color: #EF4444; }
-        .cinza { color: #9CA3AF; }
+        .verde { color: #10B981 !important; }
+        .laranja { color: #F97316 !important; }
+        .vermelho { color: #EF4444 !important; }
+        .cinza { color: #9CA3AF !important; }
         </style>
     """, unsafe_allow_html=True)
 
