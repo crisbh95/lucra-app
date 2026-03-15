@@ -50,30 +50,31 @@ st.sidebar.markdown(f"**Limite:** ${limite_max:,.2f}")
 # --- FLUXO PRINCIPAL ---
 st.header("⚽ Jogo Completo")
 
-col_config, col_seguro = st.columns([1.2, 1])
+col_inputs, col_estrategia = st.columns([1, 1])
 
-with col_config:
-    st.markdown("### 1. Favorito (Seu Palpite)")
-    nome_fav = st.text_input("Time A", "Flamengo")
+with col_inputs:
+    st.markdown("### 📝 Inputs")
+    nome_fav = st.text_input("Favorito", "Flamengo")
     odd_fav = st.number_input(f"Odd {nome_fav}", min_value=1.01, value=1.50)
-    stake_fav = st.number_input(f"Stake no {nome_fav} ($)", min_value=1.0, value=60.0)
+    stake_fav = st.number_input(f"Stake {nome_fav} ($)", min_value=1.0, value=60.0)
     
-    # Seguro Gols (definido antes para uso no Break Even)
+    nome_empate = st.text_input("Empate", "Empate")
+    odd_empate = st.number_input(f"Odd {nome_empate}", min_value=1.01, value=4.00)
+    
+    nome_zebra = st.text_input("Zebra", "Criciúma")
+    odd_zebra = st.number_input(f"Odd {nome_zebra}", min_value=1.01, value=8.00)
+    
+    st.markdown("### 🛡️ Seguro Gols")
     lucro_bruto = (stake_fav * odd_fav) - stake_fav
     if lucro_bruto < 0: lucro_bruto = 0
     
     pct_seguro = st.slider("% Lucro Seguro", 0, 100, 10)
     valor_seguro = lucro_bruto * (pct_seguro / 100)
     odd_over = st.number_input("Odd Over 1.5", 1.01, 10.0, 1.8)
-    
-    # Inputs de Cobertura
-    nome_empate = st.text_input("Empate (Odd)", "Empate")
-    odd_empate = st.number_input(f"Odd Empate", min_value=1.01, value=4.00)
-    
-    nome_zebra = st.text_input("Zebra (Odd)", "Criciúma")
-    odd_zebra = st.number_input(f"Odd Zebra", min_value=1.01, value=8.00)
-    
-    estrategia = st.radio("Estratégia", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Break Even)"])
+
+with col_estrategia:
+    st.markdown("### 🎯 Estratégia")
+    estrategia = st.radio("Tipo", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Break Even)"])
     
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
@@ -81,11 +82,9 @@ with col_config:
         stake_empate = lucro_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         stake_zebra = lucro_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
     else:
-        # Break Even: Cálculo iterativo para coverir o investimento total (Fav + Emp + Zeb + Seg)
         stake_empate = stake_fav / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         stake_zebra = stake_fav / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
         
-        # Iteração 2: Refinar usando o valor do seguro
         total_sem_empate = stake_fav + stake_zebra + valor_seguro
         stake_empate = total_sem_empate / (odd_empate - 1) if (odd_empate - 1) > 0 else 0
         
@@ -93,20 +92,14 @@ with col_config:
         stake_zebra = total_sem_zebra / (odd_zebra - 1) if (odd_zebra - 1) > 0 else 0
 
     st.markdown(f"""
-    <div class="card" style="border-color: #FF3B30; margin-top: 10px;">
+    <div class="card" style="border-color: #FF3B30;">
         <div class="metric-label">COBERTURA {nome_empate}</div>
         <div class="metric-value" style="color:#FF3B30">${stake_empate:,.2f}</div>
         <div class="metric-label">COBERTURA {nome_zebra}</div>
         <div class="metric-value" style="color:#FF3B30">${stake_zebra:,.2f}</div>
     </div>
     """, unsafe_allow_html=True)
-
-with col_seguro:
-    st.markdown("### 🛡️ Seguro Gols")
     
-    st.metric("Valor Seguro", f"${valor_seguro:,.2f}", f"Ret: ${valor_seguro * odd_over:,.2f}")
-    
-    # Análise de Mercado
     prob_fav = (1/odd_fav) * 100
     prob_empate = (1/odd_empate) * 100
     prob_zebra = (1/odd_zebra) * 100
@@ -124,6 +117,8 @@ with col_seguro:
         st.error(f"⚠️ Excedeu limite em ${abs(margem):,.2f}")
     else:
         st.success(f"✅ Saldo: ${margem:,.2f}")
+    
+    st.metric("Valor Seguro", f"${valor_seguro:,.2f}", f"Ret: ${valor_seguro * odd_over:,.2f}")
 
 # --- CENÁRIOS ---
 st.markdown("---")
