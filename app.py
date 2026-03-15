@@ -9,7 +9,7 @@ def buscar_mercado_polymarket(query):
             "active": "true",
             "closed": "false",
             "order_by": "volume",
-            "limit": "50"
+            "limit": "100"
         }
         response = requests.get(url, params=params, timeout=10)
         
@@ -19,11 +19,20 @@ def buscar_mercado_polymarket(query):
             
             if "data" in data:
                 for market in data["data"]:
+                    # Filtro adicional: ignora mercados encerrados ou muito antigos
+                    if market.get("closed", True):
+                        continue
+                    
+                    # Verifica se o mercado tem data futura (simplificado)
                     question = market.get("question", "").lower()
                     query_lower = query.lower()
                     
                     # Procura por times similares no nome
                     if query_lower in question or any(word in question for word in query_lower.split()):
+                        # Ignora mercados de política ou antigos
+                        if any(x in question for x in ["2023", "2022", "2021", "winner", "election"]):
+                            continue
+                            
                         # Busca os precos dos outcomes
                         outcomes = market.get("outcomes", [])
                         tokens = market.get("tokens", [])
