@@ -457,46 +457,6 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 🚨 Checklist de Segurança")
 soma_total = cents_fav + cents_empate + cents_zebra
 
-with c2:
-    st.markdown(f"""
-    <div class="card">
-        <h3>⚖️ {nome_empate}</h3>
-        <div class="metric-value {cor_2}">${lucro_2:,.2f}</div>
-        <div class="roi-text">ROI: {roi_2:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# 3. Zebra + Seguro
-lucro_3 = (stake_zebra * odd_zebra) + lucro_seguro - custo_total
-roi_3 = (lucro_3 / custo_total) * 100 if custo_total > 0 else 0
-cor_3 = "success-text" if lucro_3 >= 0 else "warning-text"
-
-with c3:
-    st.markdown(f"""
-    <div class="card">
-        <h3>🏅 {nome_zebra}</h3>
-        <div class="metric-value {cor_3}">${lucro_3:,.2f}</div>
-        <div class="roi-text">ROI: {roi_3:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# 4. Over 1.5 - Apenas Seguro
-lucro_4 = (valor_seguro * odd_over) - custo_total
-roi_4 = (lucro_4 / custo_total) * 100 if custo_total > 0 else 0
-cor_4 = "success-text" if lucro_4 >= 0 else "warning-text"
-
-with c4:
-    st.markdown(f"""
-    <div class="card">
-        <h3>⚽ Over 1.5</h3>
-        <div class="metric-label">Apenas Seguro</div>
-        <div class="metric-value {cor_4}">${lucro_4:,.2f}</div>
-        <div class="roi-text">ROI: {roi_4:.1f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.caption(f"Total Investido: ${custo_total:,.2f}")
-
 if soma_total > 105:
     st.sidebar.error("❌ MERCADO MUITO CARO: A taxa da casa vai comer seu lucro.")
 elif lucro_1 < 0:
