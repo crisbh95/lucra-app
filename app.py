@@ -1,4 +1,43 @@
 import streamlit as st
+import requests
+
+def buscar_mercado_polymarket(query):
+    try:
+        url = "https://clob.polymarket.com/markets"
+        params = {
+            "active": "true",
+            "limit": "10",
+            "q": query
+        }
+        response = requests.get(url, params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            markets = []
+            
+            if "data" in data:
+                for market in data["data"]:
+                    if query.lower() in market.get("question", "").lower():
+                        markets.append({
+                            "question": market.get("question"),
+                            "id": market.get("id"),
+                            "slug": market.get("slug")
+                        })
+            return markets
+        return []
+    except Exception as e:
+        st.error(f"Erro ao buscar mercado: {e}")
+        return []
+
+def get_preco_central(price_data):
+    if not price_data:
+        return None
+    try:
+        if isinstance(price_data, dict):
+            return (price_data.get("bid1", 0) + price_data.get("ask1", 0)) / 2
+        return price_data
+    except:
+        return None
 
 def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
     modo = st.radio(
@@ -174,7 +213,33 @@ with col_inputs:
 
 with col_estrategia:
     st.markdown("### 🎯 Estratégia")
+    
+    # Botao para abrir no Polymarket
+    search_query = f"{nome_fav} {nome_zebra}"
+    polymarket_url = f"https://polymarket.com/search?q={search_query.replace(' ', '%20')}"
+    
+    # Campo de busca na API
+    st.markdown("#### 🔍 Buscar Jogo no Polymarket")
+    busca_api = st.text_input("Digite o nome do jogo para buscar:", placeholder="Ex: Flamengo Criciuma")
+    
+    if st.button("🔎 Buscar Preços"):
+        if busca_api:
+            with st.spinner("Buscando mercados..."):
+                markets = buscar_mercado_polymarket(busca_api)
+                if markets:
+                    st.success(f"Encontrados {len(markets)} mercados:")
+                    for m in markets[:3]:
+                        st.markdown(f"- **{m['question']}**")
+                        #Aqui você pode adicionar lógica para preencher os campos automaticamente
+                else:
+                    st.warning("Nenhum mercado encontrado.")
+    
+    st.markdown("---")
+    
     estrategia = st.radio("Tipo", ["💸 Lucro Máximo (Green Up)", "🛡️ Cobrir Custo (Break Even)"])
+    
+    # Link para Polymarket
+    st.markdown(f"[🌐 Abrir Jogo no Polymarket]({polymarket_url})")
     
     # Cálculo da Cobertura
     if "Green Up" in estrategia:
