@@ -572,6 +572,12 @@ Para cobrir Empate e Zebra:
 Procure o mercado: `Total Goals Over 1.5`
 * Escolha: **{"Polymarket (YES)" if modo_seguro == "Centavos (Polymarket)" else "Casa"}**
 * Digite: **{f"{int(100/odd_over)}¢ (Amount: ${valor_seguro:,.2f})" if modo_seguro == "Centavos (Polymarket)" else f"${valor_seguro:,.2f}"}**
+
+---
+**💡 Dica para você ler o gráfico:**
+* 🔴 **Tudo Vermelho:** O robô está maluco ou as odds são horríveis. Não aposte.
+* 🟠 **Empate/Zebra em $ 0.00 e Favorito Laranja:** O robô está certo, mas o jogo não dá lucro (as taxas da casa são maiores que o prêmio).
+* 🟢 **Empate/Zebra em $ 0.00 e Favorito Verde:** É aqui que você ganha dinheiro. É o sinal verde para apostar.
 """)
 
-st.sidebar.info("💡 Dica: O 'NÃO' no favorito substitui as apostas individuais em Empate e Zebra.")
+st.sidebar.info("💡 Lembrete: O 'NÃO' no favorito substitui as apostas individuais em Empate e Zebra.")
