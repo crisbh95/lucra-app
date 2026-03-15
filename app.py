@@ -83,7 +83,7 @@ def get_preco_central(price_data):
 def input_odd_or_cents(label, default_odd=1.5, key_prefix=""):
     modo = st.radio(
         f"Modo {label}:",
-        ["Odd Decimal (Brasil)", "Centavos (Polymarket)"],
+        ["Modo Casa Brasileira", "Centavos (Polymarket)"],
         horizontal=True,
         key=f"modo_{key_prefix}"
     )
@@ -206,7 +206,7 @@ with col_inputs:
                 st.success(f"💡 Sugestão: Para um mercado justo, a Zebra deveria estar em ~{suggested_zebra}¢.")
     
     st.markdown("### 🛡️ Seguro Gols")
-    modo_seguro = st.radio("Modo Seguro:", ["Odd Decimal (Brasil)", "Centavos (Polymarket)"], horizontal=True, key="modo_seguro")
+    modo_seguro = st.radio("Modo Seguro:", ["Modo Casa Brasileira", "Centavos (Polymarket)"], horizontal=True, key="modo_seguro")
     
     if modo_seguro == "Centavos (Polymarket)":
         cents_seguro = st.number_input("Preço Over 1.5 (¢)", min_value=1, max_value=99, value=70, key="cents_seguro")
@@ -420,6 +420,7 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
             margin-bottom: 10px;
         }
         .verde { color: #10B981; }
+        .laranja { color: #F97316; }
         .vermelho { color: #EF4444; }
         </style>
     """, unsafe_allow_html=True)
@@ -428,8 +429,16 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
     titulos = [f"🏆 {nome_fav}", f"⚖️ {nome_empate}", f"🏅 {nome_zebra}", "⚽ Over 1.5"]
     lucros = [l_fav, l_emp, l_zeb, l_seg]
 
+    aviso_laranja = False
+    
     for i, col in enumerate(cols):
         cor = "verde" if lucros[i] >= -0.01 else "vermelho"
+        
+        # Apenas para o favorito
+        if i == 0 and lucros[i] < -0.01:
+            cor = "laranja"
+            aviso_laranja = True
+            
         with col:
             st.markdown(f"""
                 <div class="card">
@@ -440,6 +449,8 @@ def exibir_quatro_cenarios(stake_fav, stake_emp, stake_zeb, stake_seg, odd_fav, 
             """, unsafe_allow_html=True)
 
     st.info(f"💰 Investimento Total na Operação: $ {total:.2f}")
+    if aviso_laranja:
+        st.warning("⚠️ Odd muito baixa para cercar o jogo. Tente tirar o seguro ou aumentar a stake principal.")
     
     return l_fav, l_emp, l_zeb, l_seg, total
 
